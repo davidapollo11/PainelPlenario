@@ -1,0 +1,60 @@
+## ==========================================
+## 1. COMPILAÇÃO DO .NET E C#
+## ==========================================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Arquivos de usuário e cache de compilação
+*.user
+*.suo
+*.userprefs
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+## ==========================================
+## 2. IDES & EDITORES (Visual Studio / VS Code)
+## ==========================================
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.ide/
+*.swp
+*.*~
+
+## ==========================================
+## 3. ESPECÍFICO DE BLAZOR HYBRID & WEBVIEW2
+## ==========================================
+# O WebView2 cria uma pasta com cache do navegador ao lado do executável
+*.WebView2/
+EBWebView/
+
+## ==========================================
+## 4. DOCKER & BANCO DE DADOS LOCAL
+## ==========================================
+# Volume de dados do PostgreSQL caso tenha sido criado na pasta local
+postgres_data/
+*.db
+*.sqlite
+*.sqlite3
+
+## ==========================================
+## 5. RELATÓRIOS E ARQUIVOS TEMPORÁRIOS
+## ==========================================
+*.pdf
+TestResults/
+[Tt]emp/
+
+## ==========================================
+## 6. SISTEMA OPERACIONAL (Windows / Mac)
+## ==========================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

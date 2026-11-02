@@ -1,0 +1,450 @@
+@implements IDisposable
+@inject PlenarioStateService Estado
+@inject IServiceProvider Services
+@using Microsoft.EntityFrameworkCore
+@using PainelPlenario.Data
+@inject PlenarioDbContext Db
+
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+
+    <!-- CABEÇALHO -->
+    <header style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #334155;">
+        <div>
+            <h1 style="font-size: 1.6rem; color: #38bdf8; margin-bottom: 4px;">
+                @(Estado.SessaoAtiva?.TituloFormatado ?? "Câmara Municipal")
+            </h1>
+            <p style="color: #94a3b8; font-size: 0.95rem;">
+                Status da Sessão: <strong style="color: #10b981;">EM ANDAMENTO</strong> |
+                Quórum Presente: <strong style="color: #f8fafc;">@Estado.TotalPresentes / @Estado.Parlamentares.Count</strong>
+            </p>
+        </div>
+
+        <!-- CONTROLE DE MODOS DO TELÃO -->
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-verde" @onclick="GerarExtratoPdf" style="font-weight: bold;">
+                📄 Extrato PDF
+            </button>
+            <button class="btn btn-azul" @onclick="AbrirJanelaTelao" style="font-weight: bold;">
+                📺 Abrir Telão
+            </button>
+            <button class="btn @(modoOperador == "pauta" ? "btn-ativo" : "")"
+                    @onclick='() => SelecionarAba("pauta")'>
+                📋 Pauta (@(Estado.SessaoAtiva?.ItensPauta.Count ?? 0))
+            </button>
+            <button class="btn @(Estado.ModoAtual == ModoTelao.QuorumPresenca && modoOperador != "pauta" ? "btn-ativo" : "")"
+                    @onclick='() => SelecionarAba("painel", ModoTelao.QuorumPresenca)'>
+                👥 Quórum
+            </button>
+            <button class="btn @(Estado.ModoAtual == ModoTelao.TribunaCronometro && modoOperador != "pauta" ? "btn-ativo" : "")"
+                    @onclick='() => SelecionarAba("painel", ModoTelao.TribunaCronometro)'>
+                ⏱️ Tribuna
+            </button>
+            <button class="btn @((Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado) && modoOperador != "pauta" ? "btn-ativo" : "")"
+                    @onclick='() => SelecionarAba("painel", ModoTelao.VotacaoNominal)'>
+                🗳️ Votação
+            </button>
+        </div>
+    </header>
+
+    <!-- ÁREA PRINCIPAL CONFORME O MODO ATUAL -->
+    @if (modoOperador == "pauta")
+    {
+        <!-- ABA DE GESTÃO DA PAUTA -->
+        <div style="background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155; margin-bottom: 24px;">
+            <h2 style="color: #38bdf8; font-size: 1.4rem; margin-bottom: 16px;">
+                📋 Ordem do Dia (Pauta de Matérias)
+            </h2>
+
+            <!-- FORMULÁRIO RÁPIDO PARA ADICIONAR MATÉRIA -->
+            <div style="display: grid; grid-template-columns: 200px 150px 250px 1fr auto; gap: 12px; background: #0f172a; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #334155; align-items: end;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Tipo</label>
+                    <input @bind="novoTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: Projeto de Lei" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Número/Ano</label>
+                    <input @bind="novoNumero" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: 005/2026" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Autor</label>
+                    <input @bind="novoAutor" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: Ver. Carlos Silva" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Ementa (Resumo)</label>
+                    <input @bind="novaEmenta" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Descrição do projeto..." />
+                </div>
+                <button class="btn btn-verde" @onclick="AdicionarNovaMateria" style="height: 38px;">
+                    + Inserir
+                </button>
+            </div>
+
+            <!-- LISTAGEM DAS MATÉRIAS -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                @if (Estado.SessaoAtiva != null)
+                {
+                    @foreach (var item in Estado.SessaoAtiva.ItensPauta.OrderBy(i => i.Ordem))
+                    {
+                        var ehAtual = Estado.MateriaAtual?.Id == item.Id;
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: @(ehAtual ? "#0c4a6e" : "#0f172a"); padding: 16px 20px; border-radius: 8px; border: 1px solid @(ehAtual ? "#0284c7" : "#334155");">
+                            <div style="flex: 1;">
+                                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                                    <span style="background: #334155; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                                        #@item.Ordem
+                                    </span>
+                                    <strong style="color: #38bdf8; font-size: 1.1rem;">@item.Tipo @item.Numero</strong>
+                                    <span style="color: #94a3b8; font-size: 0.85rem;">por @item.Autor</span>
+
+                                    @if (item.Status == StatusItemPauta.Concluido)
+                                    {
+                                        <span style="margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; background: @(item.Resultado == ResultadoVotacao.Aprovado ? "#065f46" : "#991b1b"); color: white;">
+                                            @item.Resultado?.ToString().ToUpper()
+                                        </span>
+                                    }
+                                </div>
+                                <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.3;">@item.Ementa</p>
+                            </div>
+
+                            <div style="margin-left: 20px;">
+                                <button class="btn btn-azul" @onclick="() => IniciarVotacao(item)">
+                                    @(ehAtual ? "● Em Votação" : "▶ Iniciar Votação")
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (Estado.ModoAtual == ModoTelao.TribunaCronometro)
+        {
+            <!-- MODO CRONÔMETRO -->
+            <div style="background: #1e293b; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #334155; margin-bottom: 24px;">
+                <h2 style="color: #94a3b8; font-size: 1.2rem; text-transform: uppercase;">Tempo de Discurso na Tribuna</h2>
+
+                <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")">
+                    @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
+                </div>
+
+                <div style="display: flex; justify-content: center; gap: 12px;">
+                    <button class="btn btn-verde" @onclick="() => Estado.IniciarCronometro(300)">▶ 5 Minutos</button>
+                    <button class="btn btn-azul" @onclick="() => Estado.IniciarCronometro(180)">▶ 3 Minutos</button>
+                    <button class="btn btn-amarelo" @onclick="() => Estado.IniciarCronometro(60)">▶ 1 Minuto (Aparte)</button>
+                    <button class="btn" @onclick="() => Estado.PausarOuRetomarCronometro()">
+                        @(Estado.CronometroRodando ? "⏸ Pausar" : "▶ Retomar")
+                    </button>
+                    <button class="btn btn-vermelho" @onclick="() => Estado.ZerarCronometro()">⏹ Zerar</button>
+                </div>
+            </div>
+        }
+        else if (Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado)
+        {
+            <!-- MODO VOTAÇÃO & PROCLAMAÇÃO -->
+            <div style="background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <span style="background: #0284c7; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">
+                            @(Estado.MateriaAtual?.Tipo ?? "Matéria") @(Estado.MateriaAtual?.Numero ?? "")
+                        </span>
+                        <h2 style="font-size: 1.3rem; margin-top: 6px; color: #f8fafc;">
+                            @(Estado.MateriaAtual?.Ementa ?? "Nenhuma matéria selecionada")
+                        </h2>
+                    </div>
+
+                    @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
+                    {
+                        <button class="btn btn-verde" @onclick="() => Estado.VotacaoSimbolicaAprovarTodos()">
+                            ⚡ Aprovação Simbólica (Todos SIM)
+                        </button>
+                    }
+                </div>
+
+                <!-- PLACAR AO VIVO -->
+                <div style="display: flex; gap: 16px; margin: 16px 0;">
+                    <div class="placar-badge" style="color: #10b981;">SIM: @Estado.TotalSim</div>
+                    <div class="placar-badge" style="color: #ef4444;">NÃO: @Estado.TotalNao</div>
+                    <div class="placar-badge" style="color: #f59e0b;">ABST.: @Estado.TotalAbstencao</div>
+                    <div class="placar-badge" style="color: #94a3b8;">TOTAL: @Estado.TotalVotantes</div>
+                </div>
+
+                <!-- ÁREA DE PROCLAMAÇÃO PELO OPERADOR -->
+                <div style="border-top: 1px solid #334155; padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
+                    {
+                        <span style="color: #94a3b8; font-size: 0.95rem;">
+                            Aguarde a manifestação do Presidente e confirme a proclamação oficial:
+                        </span>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-verde" style="font-size: 1.05rem; padding: 10px 20px;"
+                            @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Aprovado)">
+                                🏆 Proclamar: APROVADO
+                            </button>
+                            <button class="btn btn-vermelho" style="font-size: 1.05rem; padding: 10px 20px;"
+                            @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Rejeitado)">
+                                ❌ Proclamar: REJEITADO
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <div>
+                                <span style="color: #94a3b8; font-size: 0.9rem;">STATUS OFICIAL:</span>
+                                <strong style="margin-left: 8px; font-size: 1.2rem; color: @(Estado.ResultadoAtual == ResultadoVotacao.Aprovado ? "#10b981" : "#ef4444")">
+                                    MATÉRIA @Estado.ResultadoAtual?.ToString().ToUpper()
+                                </strong>
+                            </div>
+                            <button class="btn btn-amarelo" @onclick="() => Estado.ReabrirVotacao()">
+                                ↩ Reabrir Votação / Retificar
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    <!-- GRADE DOS VEREADORES (CHAMADA E REGISTRO DE VOTO) -->
+    <h3 style="color: #cbd5e1; font-size: 1.1rem; margin-bottom: 12px;">
+        @(Estado.ModoAtual == ModoTelao.VotacaoNominal ? "Votação Individual por Parlamentar" : "Registro de Presença (Clique no card para alternar)")
+    </h3>
+
+    <div class="grid-vereadores">
+        @foreach (var vereador in Estado.Parlamentares)
+        {
+            var presenca = Estado.SessaoAtiva?.Presencas.FirstOrDefault(p => p.ParlamentarId == vereador.Id);
+            var presente = presenca?.Presente ?? false;
+            var voto = Estado.VotosMatériaAtual.TryGetValue(vereador.Id, out var v) ? v : TipoVoto.Ausente;
+
+            <div class="card-vereador @(presente ? "presente" : "ausente")"
+                 style="cursor: pointer;"
+                 @onclick="() => { if (Estado.ModoAtual != ModoTelao.VotacaoNominal) Estado.AlternarPresenca(vereador.Id); }">
+
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">👤</div>
+                <strong style="display: block; font-size: 1.1rem; color: #f8fafc;">@vereador.NomePolitico</strong>
+                <span style="font-size: 0.85rem; color: #94a3b8;">@vereador.Partido - @vereador.CargoMesa</span>
+
+                <div style="margin-top: 10px;">
+                    @if (presente)
+                    {
+                        <span style="color: #10b981; font-size: 0.85rem; font-weight: bold;">● Presente</span>
+                    }
+                    else
+                    {
+                        <span style="color: #64748b; font-size: 0.85rem;">○ Ausente</span>
+                    }
+                </div>
+
+                <!-- SE ESTIVER EM MODO DE VOTAÇÃO, MOSTRA BOTÕES DE VOTO RÁPIDOS -->
+                @if (Estado.ModoAtual == ModoTelao.VotacaoNominal && presente)
+                {
+                    <div style="display: flex; gap: 4px; margin-top: 12px;" @onclick:stopPropagation="true">
+                        <button class="btn-micro @(voto == TipoVoto.Sim ? "ativo-sim" : "")"
+                                @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Sim)">
+                            SIM
+                        </button>
+                        <button class="btn-micro @(voto == TipoVoto.Nao ? "ativo-nao" : "")"
+                                @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Nao)">
+                            NÃO
+                        </button>
+                        <button class="btn-micro @(voto == TipoVoto.Abstencao ? "ativo-abs" : "")"
+                                @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Abstencao)">
+                            ABS
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .btn {
+        background: #334155;
+        color: #f8fafc;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: 0.2s;
+    }
+    .btn:hover { background: #475569; }
+    .btn-ativo { background: #0284c7 !important; color: white !important; }
+    .btn-verde { background: #059669; }
+    .btn-azul { background: #0284c7; }
+    .btn-amarelo { background: #d97706; }
+    .btn-vermelho { background: #dc2626; }
+
+    .btn-micro {
+        flex: 1;
+        padding: 6px 0;
+        border: 1px solid #475569;
+        background: #0f172a;
+        color: #94a3b8;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    .ativo-sim { background: #10b981 !important; color: white !important; border-color: #10b981 !important; }
+    .ativo-nao { background: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
+    .ativo-abs { background: #f59e0b !important; color: white !important; border-color: #f59e0b !important; }
+</style>
+
+@code {
+    private string modoOperador = "painel"; // "painel" ou "pauta"
+
+    private string novoTipo = "Requerimento";
+    private string novoNumero = "";
+    private string novoAutor = "";
+    private string novaEmenta = "";
+
+    private void IniciarVotacao(ItemPauta item)
+    {
+        modoOperador = "painel";
+        Estado.IniciarVotacaoMateria(item);
+    }
+
+    private async Task AdicionarNovaMateria()
+    {
+        if (string.IsNullOrWhiteSpace(novoNumero) || string.IsNullOrWhiteSpace(novaEmenta) || Estado.SessaoAtiva == null)
+            return;
+
+        var novaOrdem = Estado.SessaoAtiva.ItensPauta.Count + 1;
+        var materia = new ItemPauta
+        {
+            SessaoId = Estado.SessaoAtiva.Id,
+            Ordem = novaOrdem,
+            Tipo = novoTipo,
+            Numero = novoNumero,
+            Autor = novoAutor,
+            Ementa = novaEmenta,
+            Status = StatusItemPauta.Pendente
+        };
+
+        // Salva na tabela do PostgreSQL
+        Db.ItensPauta.Add(materia);
+        await Db.SaveChangesAsync();
+
+        // Atualiza a memória para refletir na tela
+        Estado.SessaoAtiva.ItensPauta.Add(materia);
+        Estado.MudarModoTelao(Estado.ModoAtual); // Dispara a notificação de tela
+
+        novoNumero = "";
+        novaEmenta = "";
+    }
+
+    private void SelecionarAba(string aba, ModoTelao? modo = null)
+    {
+        modoOperador = aba;
+        if (modo.HasValue)
+        {
+            Estado.MudarModoTelao(modo.Value);
+        }
+    }
+
+    private void AbrirJanelaTelao()
+    {
+        WindowHelper.AbrirTelao(Services);
+    }
+
+    private void GerarExtratoPdf()
+    {
+        RelatorioSessaoService.GerarEAbrirPdf(Estado);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Estado.OnMudancaEstado += AtualizarTela;
+        try
+        {
+            if (Estado.SessaoAtiva == null)
+            {
+                await CarregarDadosDoBancoAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Se der qualquer erro no banco, abre uma caixinha avisando!
+            System.Windows.MessageBox.Show(ex.ToString(), "Erro ao carregar dados do PostgreSQL");
+        }
+    }
+
+    private async Task CarregarDadosDoBancoAsync()
+    {
+        // 1. Busca os vereadores cadastrados no PostgreSQL
+        var vereadores = await Db.Parlamentares
+            .Where(p => p.Ativo)
+            .OrderBy(p => p.NomePolitico)
+            .ToListAsync();
+
+        // 2. Busca se já existe uma sessão em aberto no banco
+        var sessao = await Db.Sessoes
+            .Include(s => s.ItensPauta)
+            .Include(s => s.Presencas)
+            .OrderByDescending(s => s.Data)
+            .FirstOrDefaultAsync();
+
+        // Se for a primeira vez e ainda não houver sessão no banco, cria a 1ª Sessão
+        if (sessao == null)
+        {
+            sessao = new Sessao
+            {
+                Numero = 1,
+                Tipo = TipoSessao.Ordinaria,
+                Status = StatusSessao.EmAndamento
+            };
+
+            // Adiciona a presença inicial para todos os vereadores
+            foreach (var v in vereadores)
+            {
+                sessao.Presencas.Add(new RegistroPresenca
+                {
+                    SessaoId = sessao.Id,
+                    ParlamentarId = v.Id,
+                    Presente = true
+                });
+            }
+
+            // Adiciona o primeiro Projeto de Lei na pauta
+            var materiaInicial = new ItemPauta
+            {
+                SessaoId = sessao.Id,
+                Ordem = 1,
+                Tipo = "Projeto de Lei",
+                Numero = "001/2026",
+                Autor = "Poder Executivo",
+                Ementa = "Dispõe sobre o Programa Municipal de Transparência e Gestão Pública Digital."
+            };
+            sessao.ItensPauta.Add(materiaInicial);
+
+            // Grava tudo no PostgreSQL de verdade!
+            Db.Sessoes.Add(sessao);
+            await Db.SaveChangesAsync();
+        }
+
+        // Alimenta o motor de estado em memória com os dados do PostgreSQL
+        Estado.DefinirSessao(sessao, vereadores);
+
+        var primeiraMateria = sessao.ItensPauta.FirstOrDefault();
+        if (primeiraMateria != null)
+        {
+            Estado.DefinirMateriaAtual(primeiraMateria);
+        }
+
+        Estado.MudarModoTelao(ModoTelao.QuorumPresenca);
+    }
+
+    private void AtualizarTela()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Estado.OnMudancaEstado -= AtualizarTela;
+    }
+}

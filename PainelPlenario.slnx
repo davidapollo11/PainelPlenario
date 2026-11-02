@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PainelPlenario.Core/PainelPlenario.Core.csproj" />
+    <Project Path="src/PainelPlenario.Data/PainelPlenario.Data.csproj" />
+    <Project Path="src/PainelPlenario.Desktop/PainelPlenario.Desktop.csproj" />
+  </Folder>
+</Solution>
