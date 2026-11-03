@@ -31,6 +31,8 @@ public class RelatorioSessaoService
         var nomeArquivo = $"Extrato_{sessao.TituloFormatado.Replace(" ", "_").Replace("ª", "")}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
         var caminhoCompleto = Path.Combine(Path.GetTempPath(), nomeArquivo);
 
+        var config = estado.Configuracao;
+
         // Constrói o documento com código fluente do C#
         var documento = Document.Create(container =>
         {
@@ -45,8 +47,12 @@ public class RelatorioSessaoService
                 page.Header().Column(col =>
                 {
                     col.Item().AlignCenter().Text("REPÚBLICA FEDERATIVA DO BRASIL").Bold().FontSize(12);
-                    col.Item().AlignCenter().Text("BAHIA / CÂMARA MUNICIPAL DE CAMPO FORMOSO").Bold().FontSize(14).FontColor(Colors.Blue.Darken3);
-                    col.Item().AlignCenter().Text("MESA DIRETORA - SECRETARIA LEGISLATIVA").FontSize(9).FontColor(Colors.Grey.Medium);
+                    col.Item().AlignCenter().Text(config.NomeCamara.ToUpper()).Bold().FontSize(14).FontColor(Colors.Blue.Darken3);
+                    col.Item().AlignCenter().Text($"{config.Cidade}/{config.Estado} — {config.Legislatura}").FontSize(9).FontColor(Colors.Grey.Medium);
+                    if (!string.IsNullOrWhiteSpace(config.Slogan))
+                    {
+                        col.Item().AlignCenter().Text($"\"{config.Slogan}\"").FontSize(8).Italic().FontColor(Colors.Grey.Darken1);
+                    }
                     col.Item().PaddingTop(8).LineHorizontal(1.5f).LineColor(Colors.Blue.Darken3);
                 });
 

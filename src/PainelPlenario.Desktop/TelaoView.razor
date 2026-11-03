@@ -6,17 +6,17 @@
     <!-- CABEÇALHO OFICIAL DO TELÃO -->
     <header class="telao-header">
         <div>
-            <h1 class="telao-titulo">CÂMARA MUNICIPAL</h1>
+            <h1 class="telao-titulo">@Estado.Configuracao.NomeCamara.ToUpper()</h1>
             <p style="color: #94a3b8; font-size: 1.2rem; font-weight: 500; margin-top: 4px;">
-                @(Estado.SessaoAtiva?.TituloFormatado ?? "Sessão Plenária")
+                @Estado.Configuracao.Slogan
             </p>
         </div>
         <div style="text-align: right;">
             <div class="placar-badge" style="font-size: 1.4rem; border-color: #38bdf8;">
-                QUÓRUM: <span style="color: #38bdf8;">@Estado.TotalPresentes</span> / @Estado.Parlamentares.Count
+                QUÓRUM: <span style="color: #38bdf8;">@Estado.TotalPresentes</span> / @Estado.Configuracao.TotalCadeiras
             </div>
             <span style="font-size: 0.95rem; color: #64748b; display: block; margin-top: 4px;">
-                @DateTime.Now.ToString("dd/MM/yyyy")
+                @DateTime.Now.ToString("dd/MM/yyyy") | @Estado.Configuracao.Cidade-@Estado.Configuracao.Estado
             </span>
         </div>
     </header>

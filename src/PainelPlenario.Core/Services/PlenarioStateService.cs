@@ -18,6 +18,7 @@ namespace PainelPlenario.Core.Services
         public Dictionary<Guid, TipoVoto> VotosMatériaAtual { get; private set; } = new();
         // Guarda o veredito oficial proclamado pelo Presidente
         public ResultadoVotacao? ResultadoAtual { get; private set; }
+        public ConfiguracaoCamara Configuracao { get; set; } = new();
 
         // -------------------------------------------------------------
         // MÉTODOS DE CONTROLE (Chamados pelos botões do Operador)
@@ -57,6 +58,24 @@ namespace PainelPlenario.Core.Services
                     VotosMatériaAtual[p.Id] = TipoVoto.Sim;
                 }
             }
+            Notificar();
+        }
+
+        // -------------------------------------------------------------
+        // CONFIGURAÇÕES
+        // -------------------------------------------------------------
+
+        // Atualiza a configuração institucional e notifica todas as telas
+        public void DefinirConfiguracao(ConfiguracaoCamara config)
+        {
+            Configuracao = config;
+            Notificar();
+        }
+
+        // Atualiza a lista de parlamentares na memória quando um vereador for adicionado ou editado
+        public void AtualizarParlamentares(List<Parlamentar> parlamentares)
+        {
+            Parlamentares = parlamentares;
             Notificar();
         }
 
