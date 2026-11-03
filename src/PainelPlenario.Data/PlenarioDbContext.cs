@@ -10,7 +10,8 @@ namespace PainelPlenario.Data
         {
         }
 
-        // Nossas tabelas no PostgreSQL
+        // Tabelas no PostgreSQL
+        public DbSet<ConfiguracaoCamara> Configuracoes => Set<ConfiguracaoCamara>();
         public DbSet<Parlamentar> Parlamentares => Set<Parlamentar>();
         public DbSet<Sessao> Sessoes => Set<Sessao>();
         public DbSet<ItemPauta> ItensPauta => Set<ItemPauta>();
@@ -20,26 +21,23 @@ namespace PainelPlenario.Data
         // Método que cria o banco automaticamente e insere a bancada inicial se estiver vazio
         public async Task InicializarBancoAsync()
         {
-            // Cria todas as tabelas no PostgreSQL se ainda não existirem
-            await Database.EnsureCreatedAsync();
+            // Aplica todas as migrations pendentes automaticamente no PostgreSQL
+            await Database.MigrateAsync();
 
-            // Se a tabela de vereadores estiver vazia, cria os parlamentares padrão
-            if (!await Parlamentares.AnyAsync())
+            // 1. Configuração Padrão da Câmara
+            if (!await Configuracoes.AnyAsync())
             {
-                var vereadoresIniciais = new List<Parlamentar>
+                var configPadrao = new ConfiguracaoCamara
                 {
-                    new() { NomeCompleto = "Carlos Eduardo Silva", NomePolitico = "Ver. Carlos Silva", Partido = "MDB", CargoMesa = "Presidente" },
-                    new() { NomeCompleto = "Maria de Lourdes Santos", NomePolitico = "Verª. Maria Santos", Partido = "PL", CargoMesa = "1ª Secretária" },
-                    new() { NomeCompleto = "José Ribamar dos Santos", NomePolitico = "Ver. Zé da Farmácia", Partido = "UNIÃO", CargoMesa = "Vereador" },
-                    new() { NomeCompleto = "Eduardo Castro Alencar", NomePolitico = "Ver. Dr. Eduardo", Partido = "PSD", CargoMesa = "Vereador" },
-                    new() { NomeCompleto = "Ana Paula Nogueira", NomePolitico = "Verª. Ana Paula", Partido = "PT", CargoMesa = "Vereadora" },
-                    new() { NomeCompleto = "Marcos Paulo Ferreira", NomePolitico = "Ver. Marcos Paulo", Partido = "PP", CargoMesa = "Vereador" },
-                    new() { NomeCompleto = "João Batista de Oliveira", NomePolitico = "Ver. Pastor João", Partido = "REPUBLICANOS", CargoMesa = "Vereador" },
-                    new() { NomeCompleto = "Lucas Lima Miranda", NomePolitico = "Ver. Lucas Lima", Partido = "PODE", CargoMesa = "Vereador" },
-                    new() { NomeCompleto = "Roberto Souza Dias", NomePolitico = "Ver. Roberto Souza", Partido = "PSDB", CargoMesa = "Vereador" },
+                    Id = 1,
+                    NomeCamara = "Câmara Municipal",
+                    Slogan = "A Casa do Povo em defesa da cidadania",
+                    Cidade = "Município",
+                    Estado = "UF",
+                    Legislatura = "Legislatura 2025-2028"
                 };
 
-                await Parlamentares.AddRangeAsync(vereadoresIniciais);
+                await Configuracoes.AddAsync(configPadrao);
                 await SaveChangesAsync();
             }
         }
