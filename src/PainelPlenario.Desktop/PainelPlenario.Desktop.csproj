@@ -12,6 +12,12 @@
 	<ItemGroup>
 		<Resource Include="Assets\app.ico" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Sounds\*.wav">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="Blazicons.Lucide" Version="3.2.13" />
@@ -30,6 +36,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Assets\" />
+	  <Folder Include="Sounds\" />
 	</ItemGroup>
 
 </Project>

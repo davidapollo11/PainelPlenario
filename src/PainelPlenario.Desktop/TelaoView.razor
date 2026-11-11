@@ -1,3 +1,4 @@
+@using System.IO
 @implements IDisposable
 @inject PlenarioStateService Estado
 
@@ -246,15 +247,16 @@
     private string horarioAtual = DateTime.Now.ToString("HH:mm:ss");
     private List<string> noticias = new();
     private System.Timers.Timer? _relogioTimer;
-
+    private int _ultimoTempoObservado;
+    private System.Windows.Media.MediaPlayer? _audioPlayer;
     protected override async Task OnInitializedAsync()
     {
+        // Guarda o tempo inicial para não tocar som ao apenas abrir o Telão zerado
+        _ultimoTempoObservado = Estado.TempoRestanteSegundos;
         // Conecta ao motor de estado do plenário
         Estado.OnMudancaEstado += AtualizarTelao;
-
         // 1. Busca as notícias da Agência Brasil de forma assíncrona
         noticias = await NoticiasService.ObterNoticiasAsync();
-
         // 2. Inicia o relógio oficial que atualiza segundo a segundo
         _relogioTimer = new System.Timers.Timer(1000);
         _relogioTimer.Elapsed += (s, e) =>
@@ -264,21 +266,58 @@
         };
         _relogioTimer.Start();
     }
-
     private void AtualizarTelao()
     {
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(() =>
+        {
+            VerificarAlertaSonoro();
+            StateHasChanged();
+        });
     }
-
+    private void VerificarAlertaSonoro()
+    {
+        var tempoAtual = Estado.TempoRestanteSegundos;
+        // Só dispara se o Telão estiver exibindo a Tribuna
+        if (Estado.ModoAtual == ModoTelao.TribunaCronometro)
+        {
+            // Transição exata de 31s -> 30s (não repete se pausar/retomar em 30s)
+            if (_ultimoTempoObservado > 30 && tempoAtual == 30 && Estado.CronometroRodando)
+            {
+                TocarSom("alerta_30s.wav");
+            }
+            // Transição exata de 1s -> 0s (não dispara se clicar em zerar antes da hora)
+            else if (_ultimoTempoObservado == 1 && tempoAtual == 0)
+            {
+                TocarSom("tempo_esgotado.wav");
+            }
+        }
+        _ultimoTempoObservado = tempoAtual;
+    }
+    private void TocarSom(string nomeArquivo)
+    {
+        var caminho = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Sounds", nomeArquivo);
+        if (!File.Exists(caminho)) return;
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
+        {
+            _audioPlayer?.Close();
+            _audioPlayer = new System.Windows.Media.MediaPlayer();
+            _audioPlayer.Open(new Uri(caminho, UriKind.Absolute));
+            _audioPlayer.Play();
+        });
+    }
     public void Dispose()
     {
         Estado.OnMudancaEstado -= AtualizarTelao;
-
         if (_relogioTimer != null)
         {
             _relogioTimer.Stop();
             _relogioTimer.Dispose();
             _relogioTimer = null;
         }
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
+        {
+            _audioPlayer?.Close();
+            _audioPlayer = null;
+        });
     }
 }
