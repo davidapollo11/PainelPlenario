@@ -5,503 +5,560 @@
 @using PainelPlenario.Data
 @inject PlenarioDbContext Db
 
-<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+<div class="console-layout">
 
-    <!-- CABEÇALHO -->
-    <header style="display: flex; justify-content: space-between; align-items: center; background: #171717; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #292929;">
+    <!-- ======================================================== -->
+    <!-- BARRA LATERAL VERTICAL (ESQUERDA)                        -->
+    <!-- ======================================================== -->
+    <aside class="sidebar">
         <div>
-            <h1 style="font-size: 1.6rem; color: #15B79E; margin-bottom: 4px;">
-                @(Estado.SessaoAtiva?.TituloFormatado ?? "Câmara Municipal")
-            </h1>
-            <p style="color: #898989; font-size: 0.95rem;">
-                Status da Sessão: <strong style="color: #17B26A;">EM ANDAMENTO</strong> |
-                Quórum Presente: <strong style="color: #FAFAFA;">@Estado.TotalPresentes / @Estado.Parlamentares.Count</strong>
-            </p>
-        </div>
+            <!-- IDENTIFICAÇÃO DA CÂMARA NA SIDEBAR -->
+            <div class="sidebar-brand">
+                <div style="font-size: 0.72rem; color: #15B79E; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                    Console do Operador
+                </div>
+                <div style="font-size: 1rem; font-weight: 700; color: #FAFAFA; margin-top: 4px;">
+                    @Estado.Configuracao.NomeCamara
+                </div>
+            </div>
 
-        <!-- CONTROLE DE MODOS DO TELÃO -->
-        <div style="display: flex; gap: 8px;">
-            <button class="btn btn-verde" @onclick="GerarExtratoPdf" style="font-weight: bold;">
-                <Blazicon Svg="Lucide.FileDown" />
-                <span>Extrato PDF</span>
-            </button>
-            <button class="btn btn-azul" @onclick="AbrirJanelaTelao" style="font-weight: bold;">
+            <!-- BOTÃO DE DESTAQUE PARA ABRIR O TELÃO -->
+            <button class="btn btn-verde" @onclick="AbrirJanelaTelao" style="width: 100%; padding: 11px; margin-bottom: 10px;">
                 <Blazicon Svg="Lucide.Tv" />
                 <span>Abrir Telão</span>
             </button>
-            <button class="btn @(modoOperador == "configuracoes" ? "btn-ativo" : "")"
-                    @onclick='() => SelecionarAba("configuracoes")' style="font-weight: bold">
-                <Blazicon Svg="Lucide.Settings" />
-                <span>Configurações</span>
-            </button>
-            <button class="btn @(modoOperador == "pauta" ? "btn-ativo" : "")"
-                    @onclick='() => SelecionarAba("pauta")'>
-                <Blazicon Svg="Lucide.SquareText" />
-                <span>Pauta (@(Estado.SessaoAtiva?.ItensPauta.Count ?? 0))</span>
-            </button>
-            <button class="btn @(Estado.ModoAtual == ModoTelao.QuorumPresenca && modoOperador != "pauta" ? "btn-ativo" : "")"
+        </div>
+
+        <!-- NAVEGAÇÃO PRINCIPAL -->
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Sessão Plenária</div>
+
+            <button class="sidebar-item @(Estado.ModoAtual == ModoTelao.QuorumPresenca && modoOperador == "painel" ? "ativo" : "")"
                     @onclick='() => SelecionarAba("painel", ModoTelao.QuorumPresenca)'>
-                <Blazicon Svg="Lucide.Users" /> 
-                <span>Quórum</span>
+                <span class="sidebar-item-left">
+                    <Blazicon Svg="Lucide.Users" />
+                    <span>Quórum</span>
+                </span>
             </button>
-            <button class="btn @(Estado.ModoAtual == ModoTelao.TribunaCronometro && modoOperador != "pauta" ? "btn-ativo" : "")"
+
+            <button class="sidebar-item @(modoOperador == "pauta" ? "ativo" : "")"
+                    @onclick='() => SelecionarAba("pauta")'>
+                <span class="sidebar-item-left">
+                    <Blazicon Svg="Lucide.ClipboardList" />
+                    <span>Pauta</span>
+                </span>
+                <span class="sidebar-badge">@(Estado.SessaoAtiva?.ItensPauta.Count ?? 0)</span>
+            </button>
+
+            <button class="sidebar-item @(Estado.ModoAtual == ModoTelao.TribunaCronometro && modoOperador == "painel" ? "ativo" : "")"
                     @onclick='() => SelecionarAba("painel", ModoTelao.TribunaCronometro)'>
-                <Blazicon Svg="Lucide.Timer" /> 
-                <span>Tribuna</span>
+                <span class="sidebar-item-left">
+                    <Blazicon Svg="Lucide.Mic" />
+                    <span>Tribuna</span>
+                </span>
             </button>
-            <button class="btn @((Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado) && modoOperador != "pauta" ? "btn-ativo" : "")"
+
+            <button class="sidebar-item @((Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado) && modoOperador == "painel" ? "ativo" : "")"
                     @onclick='() => SelecionarAba("painel", ModoTelao.VotacaoNominal)'>
-                <Blazicon Svg="Lucide.Vote" />
-                <span>Votação</span>
+                <span class="sidebar-item-left">
+                    <Blazicon Svg="Lucide.Vote" />
+                    <span>Votação</span>
+                </span>
+            </button>
+
+            <div class="sidebar-section-label" style="margin-top: 12px;">Administração</div>
+
+            <button class="sidebar-item @(modoOperador == "configuracoes" ? "ativo" : "")"
+                    @onclick='() => SelecionarAba("configuracoes")'>
+                <span class="sidebar-item-left">
+                    <Blazicon Svg="Lucide.Settings" />
+                    <span>Configurações</span>
+                </span>
+            </button>
+        </nav>
+
+        <!-- RODAPÉ DA SIDEBAR -->
+        <div class="sidebar-footer">
+            <button class="btn btn-verde" @onclick="GerarExtratoPdf" style="width: 100%; padding: 10px;">
+                <Blazicon Svg="Lucide.FileText" />
+                <span>Extrato PDF</span>
             </button>
         </div>
-    </header>
+    </aside>
 
-    <!-- ÁREA PRINCIPAL CONFORME O MODO ATUAL -->
     <!-- ======================================================== -->
-    <!-- MÓDULO DE CONFIGURAÇÕES & PARÂMETROS                    -->
+    <!-- ÁREA DE CONTEÚDO (DIREITA)                               -->
     <!-- ======================================================== -->
-    @if (modoOperador == "configuracoes")
-    {
-        <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #292929; padding-bottom: 16px;">
-                <h2 style="color: #15B79E; font-size: 1.4rem; font-weight: 700;">
-                    <Blazicon Svg="Lucide.Settings" />
-                    <span>Configurações & Parâmetros do Plenário</span>
-                </h2>
+    <main class="main-content">
+        <div style="max-width: 1400px; margin: 0 auto;">
 
-                <!-- SUB-ABAS DE CONFIGURAÇÃO -->
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn @(subAbaConfig == "identidade" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "identidade"'>
-                        <Blazicon Svg="Lucide.Warehouse" />
-                        <span>Identidade da Câmara</span>
-                    </button>
-                    <button class="btn @(subAbaConfig == "vereadores" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "vereadores"'>
-                        <Blazicon Svg="Lucide.Users" />
-                        <span>Vereadores (@Estado.Parlamentares.Count)</span>
-                    </button>
-                    <button class="btn @(subAbaConfig == "regras" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "regras"'>
-                        <Blazicon Svg="Lucide.Timer" />
-                        <span>Cronômetro & Regras</span>
-                    </button>
+            <!-- CABEÇALHO LIMPO (SEM BOTÕES DE NAVEGAÇÃO) -->
+            <header style="display: flex; justify-content: space-between; align-items: center; background: #171717; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #292929;">
+                <div>
+                    <h1 style="font-size: 1.5rem; color: #15B79E; margin-bottom: 4px;">
+                        @(Estado.SessaoAtiva?.TituloFormatado ?? "Câmara Municipal")
+                    </h1>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">
+                        @Estado.Configuracao.Cidade - @Estado.Configuracao.Estado <Blazicon Svg="Lucide.MoveRight"/> @Estado.Configuracao.Legislatura
+                    </p>
                 </div>
-            </div>
 
-            @if (mensagemSalvo != null)
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div style="text-align: center;">
+                        <span style="display: block; font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Status da Sessão</span>
+                        <strong style="color: #17B26A; font-size: 0.95rem;">EM ANDAMENTO</strong>
+                    </div>
+                    <div style="background: #0F0F0F; border: 1px solid #292929; padding: 8px 16px; border-radius: 8px; text-align: center;">
+                        <span style="display: block; font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Quórum Presente</span>
+                        <strong style="color: #FAFAFA; font-size: 1.1rem;">@Estado.TotalPresentes / @Estado.Configuracao.TotalCadeiras</strong>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ÁREA PRINCIPAL CONFORME O MODO ATUAL -->
+            @if (modoOperador == "configuracoes")
             {
-                <div style="background: #17B26A; color: #a7f3d0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
-                    @mensagemSalvo
-                </div>
-            }
+                <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #292929; padding-bottom: 16px;">
+                        <h2 style="color: #15B79E; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                            <Blazicon Svg="Lucide.Settings" /> Configurações
+                        </h2>
 
-            <!-- ---------------------------------------------------- -->
-            <!-- SUB-ABA 1: IDENTIDADE DA CÂMARA                     -->
-            <!-- ---------------------------------------------------- -->
-            @if (subAbaConfig == "identidade")
-            {
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Nome Oficial da Câmara</label>
-                        <input @bind="configEdicao.NomeCamara" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Câmara Municipal de Caruaru" />
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Slogan Institucional</label>
-                        <input @bind="configEdicao.Slogan" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: A Casa do Povo em defesa da cidadania" />
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Município (Cidade)</label>
-                        <input @bind="configEdicao.Cidade" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Caruaru" />
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">UF (Estado)</label>
-                        <input @bind="configEdicao.Estado" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: PE" />
-                    </div>
-
-                    <div style="grid-column: span 2;">
-                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Identificação da Legislatura</label>
-                        <input @bind="configEdicao.Legislatura" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: 19ª Legislatura (2025-2028)" />
-                    </div>
-                </div>
-
-                <div style="margin-top: 24px; text-align: right;">
-                    <button class="btn btn-verde" @onclick="SalvarIdentidadeAsync" style="padding: 10px 24px; font-size: 1rem;">
-                        <Blazicon Svg="Lucide.Save"/> 
-                        <span>Salvar</span>
-                    </button>
-                </div>
-            }
-            else if (subAbaConfig == "vereadores")
-            {
-            <!-- FORMULÁRIO DE NOVO / EDITAR VEREADOR -->
-            <div style="background: #292929; padding: 20px; border-radius: 8px; border: 1px solid #292929; margin-bottom: 24px;">
-                <h3 style="color: #15B79E; font-size: 1.1rem; margin-bottom: 14px;">
-                        <Blazicon Svg="@(vereadorEmEdicao.Id == Guid.Empty ? Lucide.UserPlus : Lucide.Pencil)" />
-                        @(vereadorEmEdicao.Id == Guid.Empty ? "Cadastrar Parlamentar" : "Editar Parlamentar")
-                </h3>
-
-                <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1.5fr auto auto; gap: 12px; align-items: end;">
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Nome Completo</label>
-                        <input @bind="vereadorEmEdicao.NomeCompleto" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Nome Civil" />
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Nome Político (Painel)</label>
-                        <input @bind="vereadorEmEdicao.NomePolitico" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Zé da Farmácia" />
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Partido</label>
-                        <input @bind="vereadorEmEdicao.Partido" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: MDB" />
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Cargo na Mesa</label>
-                        <select @bind="vereadorEmEdicao.CargoMesa" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;">
-                            <option value="Vereador">Vereador</option>
-                            <option value="Presidente">Presidente</option>
-                            <option value="Vice-Presidente">Vice-Presidente</option>
-                            <option value="1º Secretário">1º Secretário</option>
-                            <option value="2º Secretário">2º Secretário</option>
-                        </select>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 8px; height: 38px;">
-                        <label style="color: #cbd5e1; font-size: 0.9rem; cursor: pointer;">
-                            <input type="checkbox" @bind="vereadorEmEdicao.Ativo" /> Ativo
-                        </label>
-                    </div>
-
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-verde" @onclick="SalvarVereadorAsync" style="height: 38px;">
-                            <Blazicon Svg="Lucide.Save" />
-                            <span>Gravar</span>
-                        </button>
-                        @if (vereadorEmEdicao.Id != Guid.Empty)
-                        {
-                            <button class="btn" @onclick="CancelarEdicaoVereador" style="height: 38px;">
-                                Cancelar
+                        <!-- SUB-ABAS DE CONFIGURAÇÃO -->
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn @(subAbaConfig == "identidade" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "identidade"'>
+                                <Blazicon Svg="Lucide.Landmark" /> Identidade da Câmara
                             </button>
+                            <button class="btn @(subAbaConfig == "vereadores" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "vereadores"'>
+                                <Blazicon Svg="Lucide.Users" /> Vereadores (@Estado.Parlamentares.Count)
+                            </button>
+                            <button class="btn @(subAbaConfig == "regras" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "regras"'>
+                                <Blazicon Svg="Lucide.Timer" /> Cronômetro & Regras
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (mensagemSalvo != null)
+                    {
+                        <div style="background: #065f46; color: #a7f3d0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
+                            @mensagemSalvo
+                        </div>
+                    }
+
+                    @if (subAbaConfig == "identidade")
+                    {
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Nome Oficial da Câmara</label>
+                                <input @bind="configEdicao.NomeCamara" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" placeholder="Ex: Câmara Municipal de Caruaru" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Slogan Institucional</label>
+                                <input @bind="configEdicao.Slogan" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" placeholder="Ex: A Casa do Povo em defesa da cidadania" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Município (Cidade)</label>
+                                <input @bind="configEdicao.Cidade" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" placeholder="Ex: Caruaru" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">UF (Estado)</label>
+                                <input @bind="configEdicao.Estado" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" placeholder="Ex: PE" />
+                            </div>
+
+                            <div style="grid-column: span 2;">
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Identificação da Legislatura</label>
+                                <input @bind="configEdicao.Legislatura" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" placeholder="Ex: 19ª Legislatura (2025-2028)" />
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 24px; text-align: right;">
+                            <button class="btn btn-verde" @onclick="SalvarIdentidadeAsync" style="padding: 10px 24px; font-size: 1rem;">
+                                <Blazicon Svg="Lucide.Save" /> Salvar
+                            </button>
+                        </div>
+                    }
+                    else if (subAbaConfig == "vereadores")
+                    {
+                        <!-- FORMULÁRIO DE NOVO / EDITAR VEREADOR -->
+                        <div style="background: #0F0F0F; padding: 20px; border-radius: 8px; border: 1px solid #292929; margin-bottom: 24px;">
+                            <h3 style="color: #15B79E; font-size: 1.1rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                                @if (vereadorEmEdicao.Id == Guid.Empty)
+                                {
+                                    <Blazicon Svg="Lucide.UserPlus" />
+                                    <span>Cadastrar Novo Parlamentar</span>
+                                }
+                                else
+                                {
+                                    <Blazicon Svg="Lucide.Pencil" />
+                                    <span>Editando Parlamentar</span>
+                                }
+                            </h3>
+
+                            <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1.5fr auto auto; gap: 12px; align-items: end;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Nome Completo</label>
+                                    <input @bind="vereadorEmEdicao.NomeCompleto" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="Nome Civil" />
+                                </div>
+
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Nome Político (Painel/Urna)</label>
+                                    <input @bind="vereadorEmEdicao.NomePolitico" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="Ex: Ver. Zé da Farmácia" />
+                                </div>
+
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Partido</label>
+                                    <input @bind="vereadorEmEdicao.Partido" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="Ex: MDB" />
+                                </div>
+
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Cargo na Mesa</label>
+                                    <select @bind="vereadorEmEdicao.CargoMesa" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;">
+                                        <option value="Vereador">Vereador</option>
+                                        <option value="Presidente">Presidente</option>
+                                        <option value="Vice-Presidente">Vice-Presidente</option>
+                                        <option value="1º Secretário">1º Secretário</option>
+                                        <option value="2º Secretário">2º Secretário</option>
+                                    </select>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 8px; height: 38px;">
+                                    <label style="color: #cbd5e1; font-size: 0.9rem; cursor: pointer;">
+                                        <input type="checkbox" @bind="vereadorEmEdicao.Ativo" /> Ativo
+                                    </label>
+                                </div>
+
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-verde" @onclick="SalvarVereadorAsync" style="height: 38px;">
+                                        <Blazicon Svg="Lucide.Save" /> Salvar
+                                    </button>
+                                    @if (vereadorEmEdicao.Id != Guid.Empty)
+                                    {
+                                        <button class="btn" @onclick="CancelarEdicaoVereador" style="height: 38px;">
+                                            Cancelar
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LISTAGEM DA BANCADA ATUAL -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            @foreach (var v in Estado.Parlamentares)
+                            {
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: #0F0F0F; padding: 12px 16px; border-radius: 8px; border: 1px solid #292929;">
+                                    <div>
+                                        <strong style="color: #f8fafc; font-size: 1.05rem;">@v.NomePolitico</strong>
+                                        <span style="color: #94a3b8; font-size: 0.9rem; margin-left: 8px;">(@v.NomeCompleto)</span>
+                                        <span style="background: #292929; color: #15B79E; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px;">
+                                            @v.Partido
+                                        </span>
+                                        <span style="color: #e2e8f0; font-size: 0.85rem; margin-left: 10px;">
+                                            Cargo: <strong>@v.CargoMesa</strong>
+                                        </span>
+                                        @if (!v.Ativo)
+                                        {
+                                            <span style="background: #7f1d1d; color: #fca5a5; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">
+                                                LICENCIADO / INATIVO
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <div>
+                                        <button class="btn" @onclick="() => EditarVereador(v)" style="padding: 6px 12px; font-size: 0.85rem;">
+                                            <Blazicon Svg="Lucide.Pencil" /> Editar
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (subAbaConfig == "regras")
+                    {
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Pequeno Expediente (minutos)</label>
+                                <input type="number" @bind="configEdicao.TempoPequenoExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Grande Expediente / Tribuna (minutos)</label>
+                                <input type="number" @bind="configEdicao.TempoGrandeExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Aparte Regimental (minutos)</label>
+                                <input type="number" @bind="configEdicao.TempoAparteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Questão de Ordem (minutos)</label>
+                                <input type="number" @bind="configEdicao.TempoQuestaoOrdemMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Total de Cadeiras da Câmara (Fixadas por Lei)</label>
+                                <input type="number" @bind="configEdicao.TotalCadeiras" style="width: 100%; padding: 10px; border-radius: 6px; background: #0F0F0F; color: white; border: 1px solid #292929;" />
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 24px; text-align: right;">
+                            <button class="btn btn-verde" @onclick="SalvarRegrasAsync" style="padding: 10px 24px; font-size: 1rem;">
+                                <Blazicon Svg="Lucide.Save" /> Salvar
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+            else if (modoOperador == "pauta")
+            {
+                <!-- ABA DE GESTÃO DA PAUTA -->
+                <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
+                    <h2 style="color: #15B79E; font-size: 1.4rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                        <Blazicon Svg="Lucide.ClipboardList" /> Pauta de Matérias
+                    </h2>
+
+                    <!-- FORMULÁRIO RÁPIDO PARA ADICIONAR MATÉRIA -->
+                    <div style="display: grid; grid-template-columns: 200px 150px 250px 1fr auto; gap: 12px; background: #0F0F0F; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #292929; align-items: end;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Tipo</label>
+                            <input @bind="novoTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="Ex: Projeto de Lei" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Número/Ano</label>
+                            <input @bind="novoNumero" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="Ex: 005/2026" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Autor</label>
+                            <input @bind="novoAutor" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="Ex: Ver. Carlos Silva" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Ementa (Resumo)</label>
+                            <input @bind="novaEmenta" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="Descrição do projeto..." />
+                        </div>
+                        <button class="btn btn-verde" @onclick="AdicionarNovaMateria" style="height: 38px;">
+                            <Blazicon Svg="Lucide.Plus" /> Inserir
+                        </button>
+                    </div>
+
+                    <!-- LISTAGEM DAS MATÉRIAS -->
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        @if (Estado.SessaoAtiva != null)
+                        {
+                            @foreach (var item in Estado.SessaoAtiva.ItensPauta.OrderBy(i => i.Ordem))
+                            {
+                                var ehAtual = Estado.MateriaAtual?.Id == item.Id;
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: @(ehAtual ? "#0A2926" : "#0F0F0F"); padding: 16px 20px; border-radius: 8px; border: 1px solid @(ehAtual ? "#15B79E" : "#292929");">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                                            <span style="background: #292929; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                                                #@item.Ordem
+                                            </span>
+                                            <strong style="color: #15B79E; font-size: 1.1rem;">@item.Tipo @item.Numero</strong>
+                                            <span style="color: #94a3b8; font-size: 0.85rem;">por @item.Autor</span>
+
+                                            @if (item.Status == StatusItemPauta.Concluido)
+                                            {
+                                                <span style="margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; background: @(item.Resultado == ResultadoVotacao.Aprovado ? "#065f46" : "#991b1b"); color: white;">
+                                                    @item.Resultado?.ToString().ToUpper()
+                                                </span>
+                                            }
+                                        </div>
+                                        <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.3;">@item.Ementa</p>
+                                    </div>
+
+                                    <div style="margin-left: 20px;">
+                                        <button class="btn btn-verde" @onclick="() => IniciarVotacao(item)">
+                                            @if (ehAtual)
+                                            {
+                                                <Blazicon Svg="Lucide.CircleDot" />
+                                                <span>Em Votação</span>
+                                            }
+                                            else
+                                            {
+                                                <Blazicon Svg="Lucide.Play" />
+                                                <span>Iniciar Votação</span>
+                                            }
+                                        </button>
+                                    </div>
+                                </div>
+                            }
                         }
                     </div>
                 </div>
-            </div>
-
-            <!-- LISTAGEM DA BANCADA ATUAL -->
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                @foreach (var v in Estado.Parlamentares)
+            }
+            else
+            {
+                @if (Estado.ModoAtual == ModoTelao.TribunaCronometro)
                 {
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #292929; padding: 12px 16px; border-radius: 8px; border: 1px solid #292929;">
-                        <div>
-                            <strong style="color: #FAFAFA; font-size: 1.05rem;">@v.NomePolitico</strong>
-                            <span style="color: #898989; font-size: 0.9rem; margin-left: 8px;">(@v.NomeCompleto)</span>
-                                <span style="background: #292929; color: #15B79E; padding: 2px 8px; border: 1px solid #15B79E; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px;">
-                                @v.Partido
-                            </span>
-                            <span style="color: #FAFAFA; font-size: 0.85rem; margin-left: 10px;">
-                                Cargo: <strong>@v.CargoMesa</strong>
-                            </span>
-                            @if (!v.Ativo)
-                            {
-                                <span style="background: #F04438; color: #FAFAFA; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">
-                                    LICENCIADO / INATIVO
+                    <!-- MODO CRONÔMETRO -->
+                    <div style="background: #171717; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #292929; margin-bottom: 24px;">
+                        <h2 style="color: #94a3b8; font-size: 1.2rem; text-transform: uppercase;">Tempo de Discurso na Tribuna</h2>
+
+                        <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")">
+                            @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
+                        </div>
+
+                        <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-verde" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoGrandeExpedienteMinutos * 60)">
+                                <Blazicon Svg="Lucide.Play" /> Grande Exp. (@Estado.Configuracao.TempoGrandeExpedienteMinutos min)
+                            </button>
+                            <button class="btn btn-azul" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoPequenoExpedienteMinutos * 60)">
+                                <Blazicon Svg="Lucide.Play" /> Pequeno Exp. (@Estado.Configuracao.TempoPequenoExpedienteMinutos min)
+                            </button>
+                            <button class="btn btn-amarelo" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoAparteMinutos * 60)">
+                                <Blazicon Svg="Lucide.Play" /> Aparte (@Estado.Configuracao.TempoAparteMinutos min)
+                            </button>
+                            <button class="btn" style="background: #292929;" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoQuestaoOrdemMinutos * 60)">
+                                <Blazicon Svg="Lucide.Play" /> Questão de Ordem (@Estado.Configuracao.TempoQuestaoOrdemMinutos min)
+                            </button>
+                            <button class="btn" @onclick="() => Estado.PausarOuRetomarCronometro()">
+                                @if (Estado.CronometroRodando)
+                                {
+                                    <Blazicon Svg="Lucide.Pause" />
+                                    <span>Pausar</span>
+                                }
+                                else
+                                {
+                                    <Blazicon Svg="Lucide.Play" />
+                                    <span>Retomar</span>
+                                }
+                            </button>
+                            <button class="btn btn-vermelho" @onclick="() => Estado.ZerarCronometro()"><Blazicon Svg="Lucide.Square" /> Zerar</button>
+                        </div>
+                    </div>
+                }
+                else if (Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado)
+                {
+                    <!-- MODO VOTAÇÃO & PROCLAMAÇÃO -->
+                    <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div>
+                                <span style="background: #0284c7; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">
+                                    @(Estado.MateriaAtual?.Tipo ?? "Matéria") @(Estado.MateriaAtual?.Numero ?? "")
                                 </span>
+                                <h2 style="font-size: 1.3rem; margin-top: 6px; color: #f8fafc;">
+                                    @(Estado.MateriaAtual?.Ementa ?? "Nenhuma matéria selecionada")
+                                </h2>
+                            </div>
+
+                            @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
+                            {
+                                <button class="btn btn-verde" @onclick="() => Estado.VotacaoSimbolicaAprovarTodos()">
+                                    Todos SIM
+                                </button>
                             }
                         </div>
 
-                        <div>
-                            <button class="btn" @onclick="() => EditarVereador(v)" style="padding: 6px 12px; font-size: 0.85rem;">
-                                <Blazicon Svg="Lucide.Pencil" />
-                                <span>Editar</span>
-                            </button>
+                        <!-- PLACAR AO VIVO -->
+                        <div style="display: flex; gap: 16px; margin: 16px 0;">
+                            <div class="placar-badge" style="color: #17B26A;">SIM: @Estado.TotalSim</div>
+                            <div class="placar-badge" style="color: #ef4444;">NÃO: @Estado.TotalNao</div>
+                            <div class="placar-badge" style="color: #f59e0b;">ABST.: @Estado.TotalAbstencao</div>
+                            <div class="placar-badge" style="color: #94a3b8;">TOTAL: @Estado.TotalVotantes</div>
+                        </div>
+
+                        <!-- ÁREA DE PROCLAMAÇÃO PELO OPERADOR -->
+                        <div style="border-top: 1px solid #292929; padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
+                            {
+                                <span style="color: #94a3b8; font-size: 0.95rem;">
+                                    Aguarde a manifestação do Presidente e confirme a proclamação oficial:
+                                </span>
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="btn btn-verde" style="font-size: 1.05rem; padding: 10px 20px;"
+                                            @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Aprovado)">
+                                        <Blazicon Svg="Lucide.Check" /> Proclamar: APROVADO
+                                    </button>
+                                    <button class="btn btn-vermelho" style="font-size: 1.05rem; padding: 10px 20px;"
+                                            @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Rejeitado)">
+                                        <Blazicon Svg="Lucide.X" /> Proclamar: REJEITADO
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                    <div>
+                                        <span style="color: #94a3b8; font-size: 0.9rem;">STATUS OFICIAL:</span>
+                                        <strong style="margin-left: 8px; font-size: 1.2rem; color: @(Estado.ResultadoAtual == ResultadoVotacao.Aprovado ? "#17B26A" : "#ef4444")">
+                                            MATÉRIA @Estado.ResultadoAtual?.ToString().ToUpper()
+                                        </strong>
+                                    </div>
+                                    <button class="btn btn-amarelo" @onclick="() => Estado.ReabrirVotacao()">
+                                        <Blazicon Svg="Lucide.RotateCcw" /> Reabrir Votação / Retificar
+                                    </button>
+                                </div>
+                            }
                         </div>
                     </div>
                 }
-            </div>
             }
-            else if (subAbaConfig == "regras")
-            {
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Pequeno Expediente (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoPequenoExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
-                </div>
 
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Grande Expediente / Tribuna (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoGrandeExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
-                </div>
+            <!-- GRADE DOS VEREADORES (CHAMADA E REGISTRO DE VOTO) -->
+            <h3 style="color: #cbd5e1; font-size: 1.1rem; margin-bottom: 12px;">
+                @(Estado.ModoAtual == ModoTelao.VotacaoNominal ? "Votação Individual por Parlamentar" : "Registro de Presença (Clique para alternar)")
+            </h3>
 
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Aparte Regimental (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoAparteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
-                </div>
-
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Questão de Ordem (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoQuestaoOrdemMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
-                </div>
-
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Total de Cadeiras da Câmara (Fixadas por Lei)</label>
-                    <input type="number" @bind="configEdicao.TotalCadeiras" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
-                </div>
-            </div>
-
-            <div style="margin-top: 24px; text-align: right;">
-                <button class="btn btn-verde" @onclick="SalvarRegrasAsync" style="padding: 10px 24px; font-size: 1rem;">
-                    <Blazicon Svg="Lucide.Save" />
-                    <span>Salvar</span>
-                </button>
-            </div>
-            }
-        </div>
-    }
-
-    @if (modoOperador == "pauta")
-    {
-        <!-- ABA DE GESTÃO DA PAUTA -->
-        <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
-            <h2 style="color: #15B79E; font-size: 1.4rem; margin-bottom: 16px;">
-                <Blazicon Svg="Lucide.SquareText" /> 
-                <span>Pauta de Matérias</span>
-            </h2>
-
-            <!-- FORMULÁRIO RÁPIDO PARA ADICIONAR MATÉRIA -->
-            <div style="display: grid; grid-template-columns: 200px 150px 250px 1fr auto; gap: 12px; background: #292929; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #292929; align-items: end;">
-                <div>
-                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Tipo</label>
-                    <input @bind="novoTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Projeto de Lei" />
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Número/Ano</label>
-                    <input @bind="novoNumero" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: 005/2026" />
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Autor</label>
-                    <input @bind="novoAutor" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Ver. Carlos Silva" />
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Ementa (Resumo)</label>
-                    <input @bind="novaEmenta" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Descrição do projeto..." />
-                </div>
-                <button class="btn btn-verde" @onclick="AdicionarNovaMateria" style="height: 38px;">
-                    <Blazicon Svg="Lucide.SquarePlus" />
-                    <span>Inserir</span>
-                </button>
-            </div>
-
-            <!-- LISTAGEM DAS MATÉRIAS -->
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                @if (Estado.SessaoAtiva != null)
+            <div class="grid-vereadores">
+                @foreach (var vereador in Estado.Parlamentares)
                 {
-                    @foreach (var item in Estado.SessaoAtiva.ItensPauta.OrderBy(i => i.Ordem))
-                    {
-                        var ehAtual = Estado.MateriaAtual?.Id == item.Id;
+                    var presenca = Estado.SessaoAtiva?.Presencas.FirstOrDefault(p => p.ParlamentarId == vereador.Id);
+                    var presente = presenca?.Presente ?? false;
+                    var voto = Estado.VotosMatériaAtual.TryGetValue(vereador.Id, out var v) ? v : TipoVoto.Ausente;
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: @(ehAtual ? "#3C3C3C" : "#292929"); padding: 16px 20px; border-radius: 8px; border: 1px solid @(ehAtual ? "#17B26A" : "#292929");">
-                            <div style="flex: 1;">
-                                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
-                                    <span style="background: #292929; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
-                                        #@item.Ordem
-                                    </span>
-                                    <strong style="color: #15B79E; font-size: 1.1rem;">@item.Tipo @item.Numero</strong>
-                                    <span style="color: #898989; font-size: 0.85rem;">por @item.Autor</span>
+                    <div class="card-vereador @(presente ? "presente" : "ausente")"
+                         style="cursor: pointer;"
+                         @onclick="() => { if (Estado.ModoAtual != ModoTelao.VotacaoNominal) Estado.AlternarPresenca(vereador.Id); }">
 
-                                    @if (item.Status == StatusItemPauta.Concluido)
-                                    {
-                                        <span style="margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; background: @(item.Resultado == ResultadoVotacao.Aprovado ? "#17B26A" : "#991b1b"); color: white;">
-                                            @item.Resultado?.ToString().ToUpper()
-                                        </span>
-                                    }
-                                </div>
-                                <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.3;">@item.Ementa</p>
-                            </div>
+                        <div style="font-size: 2.2rem; margin-bottom: 8px;"><Blazicon Svg="Lucide.User" /></div>
+                        <strong style="display: block; font-size: 1.1rem; color: #f8fafc;">@vereador.NomePolitico</strong>
+                        <span style="font-size: 0.85rem; color: #94a3b8;">@vereador.Partido - @vereador.CargoMesa</span>
 
-                            <div style="margin-left: 20px;">
-                                <button class="btn btn-azul" @onclick="() => IniciarVotacao(item)">
-                                    <Blazicon Svg="@(ehAtual ? Lucide.Vote : Lucide.Play)" />
-                                    <span>@(ehAtual ? "Em Votação" : "Iniciar Votação")</span>
+                        <div style="margin-top: 10px;">
+                            @if (presente)
+                            {
+                                <span style="color: #17B26A; font-size: 0.85rem; font-weight: bold;">● Presente</span>
+                            }
+                            else
+                            {
+                                <span style="color: #64748b; font-size: 0.85rem;">○ Ausente</span>
+                            }
+                        </div>
+
+                        <!-- SE ESTIVER EM MODO DE VOTAÇÃO, MOSTRA BOTÕES DE VOTO RÁPIDOS -->
+                        @if (Estado.ModoAtual == ModoTelao.VotacaoNominal && presente)
+                        {
+                            <div style="display: flex; gap: 4px; margin-top: 12px;" @onclick:stopPropagation="true">
+                                <button class="btn-micro @(voto == TipoVoto.Sim ? "ativo-sim" : "")"
+                                        @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Sim)">
+                                    SIM
+                                </button>
+                                <button class="btn-micro @(voto == TipoVoto.Nao ? "ativo-nao" : "")"
+                                        @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Nao)">
+                                    NÃO
+                                </button>
+                                <button class="btn-micro @(voto == TipoVoto.Abstencao ? "ativo-abs" : "")"
+                                        @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Abstencao)">
+                                    ABS
                                 </button>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 }
             </div>
+
         </div>
-    }
-    else
-    {
-        @if (Estado.ModoAtual == ModoTelao.TribunaCronometro)
-        {
-            <!-- MODO CRONÔMETRO -->
-            <div style="background: #171717; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #292929; margin-bottom: 24px;">
-                <h2 style="color: #898989; font-size: 1.2rem; text-transform: uppercase;">Tempo de Discurso na Tribuna</h2>
-
-                <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")">
-                    @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
-                </div>
-
-                <div style="display: flex; justify-content: center; gap: 12px;">
-                    <button class="btn btn-verde" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoGrandeExpedienteMinutos * 60)">
-                        <Blazicon Svg="Lucide.Play" />
-                        <span>Grande Exp. (@Estado.Configuracao.TempoGrandeExpedienteMinutos min)</span>
-                    </button>
-                    <button class="btn btn-azul" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoPequenoExpedienteMinutos * 60)">
-                        <Blazicon Svg="Lucide.Play" />
-                        <span>Pequeno Exp. (@Estado.Configuracao.TempoPequenoExpedienteMinutos min)</span>
-                    </button>
-                    <button class="btn btn-amarelo" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoAparteMinutos * 60)">
-                        <Blazicon Svg="Lucide.Play" />
-                        <span>Aparte (@Estado.Configuracao.TempoAparteMinutos min)</span>
-                    </button>
-                    <button class="btn" style="background: #3C3C3C;" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoQuestaoOrdemMinutos * 60)">
-                        <Blazicon Svg="Lucide.Play" />
-                        <span>Questão de Ordem (@Estado.Configuracao.TempoQuestaoOrdemMinutos min)</span>
-                    </button>
-                    <button class="btn" @onclick="() => Estado.PausarOuRetomarCronometro()">
-                        <Blazicon Svg="@(Estado.CronometroRodando ? Lucide.Pause : Lucide.Play)" />
-                        <span>@(Estado.CronometroRodando ? "Pausar" : "Retomar")</span>
-                    </button>
-                    <button class="btn btn-vermelho" @onclick="() => Estado.ZerarCronometro()">
-                        <Blazicon Svg="Lucide.SquareStop" />
-                        <span>Zerar</span>
-                    </button>
-                </div>
-            </div>
-        }
-        else if (Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado)
-        {
-            <!-- MODO VOTAÇÃO & PROCLAMAÇÃO -->
-            <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <div>
-                        <span style="background: #17B26A; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">
-                            @(Estado.MateriaAtual?.Tipo ?? "Matéria") @(Estado.MateriaAtual?.Numero ?? "")
-                        </span>
-                        <h2 style="font-size: 1.3rem; margin-top: 6px; color: #FAFAFA;">
-                            @(Estado.MateriaAtual?.Ementa ?? "Nenhuma matéria selecionada")
-                        </h2>
-                    </div>
-
-                    @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
-                    {
-                        <button class="btn btn-verde" @onclick="() => Estado.VotacaoSimbolicaAprovarTodos()">
-                            Aprovação Simbólica
-                        </button>
-                    }
-                </div>
-
-                <!-- PLACAR AO VIVO -->
-                <div style="display: flex; gap: 16px; margin: 16px 0;">
-                    <div class="placar-badge" style="color: #17B26A;">SIM: @Estado.TotalSim</div>
-                    <div class="placar-badge" style="color: #ef4444;">NÃO: @Estado.TotalNao</div>
-                    <div class="placar-badge" style="color: #f59e0b;">ABST.: @Estado.TotalAbstencao</div>
-                    <div class="placar-badge" style="color: #898989;">TOTAL: @Estado.TotalVotantes</div>
-                </div>
-
-                <!-- ÁREA DE PROCLAMAÇÃO PELO OPERADOR -->
-                <div style="border-top: 1px solid #292929; padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
-                    @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
-                    {
-                        <span style="color: #898989; font-size: 0.95rem;">
-                            Aguarde a manifestação do Presidente e confirme a proclamação oficial:
-                        </span>
-                        <div style="display: flex; gap: 12px;">
-                            <button class="btn btn-verde" style="font-size: 1.05rem; padding: 10px 20px;"
-                            @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Aprovado)">
-                                <Blazicon Svg="Lucide.Trophy" />
-                                <span>Proclamar: APROVADO</span>
-                            </button>
-                            <button class="btn btn-vermelho" style="font-size: 1.05rem; padding: 10px 20px;"
-                            @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Rejeitado)">
-                                <Blazicon Svg="Lucide.OctagonX" />
-                                <span>Proclamar: REJEITADO</span>
-                            </button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                            <div>
-                                <span style="color: #898989; font-size: 0.9rem;">STATUS OFICIAL:</span>
-                                <strong style="margin-left: 8px; font-size: 1.2rem; color: @(Estado.ResultadoAtual == ResultadoVotacao.Aprovado ? "#17B26A" : "#ef4444")">
-                                    MATÉRIA @Estado.ResultadoAtual?.ToString().ToUpper()
-                                </strong>
-                            </div>
-                            <button class="btn btn-amarelo" @onclick="() => Estado.ReabrirVotacao()">
-                                <Blazicon Svg="Lucide.Undo2" />
-                                <span>Retificar</span>
-                            </button>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-    }
-    <!-- GRADE DOS VEREADORES (CHAMADA E REGISTRO DE VOTO) -->
-    <h3 style="color: #cbd5e1; font-size: 1.1rem; margin-bottom: 12px;">
-        @(Estado.ModoAtual == ModoTelao.VotacaoNominal ? "Votação Individual por Parlamentar" : "Registro de Presença (Clique no card para alternar)")
-    </h3>
-
-    <div class="grid-vereadores">
-        @foreach (var vereador in Estado.Parlamentares)
-        {
-            var presenca = Estado.SessaoAtiva?.Presencas.FirstOrDefault(p => p.ParlamentarId == vereador.Id);
-            var presente = presenca?.Presente ?? false;
-            var voto = Estado.VotosMatériaAtual.TryGetValue(vereador.Id, out var v) ? v : TipoVoto.Ausente;
-
-            <div class="card-vereador @(presente ? "presente" : "ausente")"
-                 style="cursor: pointer;"
-                 @onclick="() => { if (Estado.ModoAtual != ModoTelao.VotacaoNominal) Estado.AlternarPresenca(vereador.Id); }">
-
-                <div style="font-size: 2.2rem; margin-bottom: 8px;">
-                    <Blazicon Svg="Lucide.User" />
-                </div>
-                <strong style="display: block; font-size: 1.1rem; color: #FAFAFA;">@vereador.NomePolitico</strong>
-                <span style="font-size: 0.85rem; color: #898989;">@vereador.Partido - @vereador.CargoMesa</span>
-
-                <div style="margin-top: 10px;">
-                    @if (presente)
-                    {
-                        <span style="color: #17B26A; font-size: 0.85rem; font-weight: bold;">● Presente</span>
-                    }
-                    else
-                    {
-                        <span style="color: #64748b; font-size: 0.85rem;">○ Ausente</span>
-                    }
-                </div>
-
-                <!-- SE ESTIVER EM MODO DE VOTAÇÃO, MOSTRA BOTÕES DE VOTO RÁPIDOS -->
-                @if (Estado.ModoAtual == ModoTelao.VotacaoNominal && presente)
-                {
-                    <div style="display: flex; gap: 4px; margin-top: 12px;" @onclick:stopPropagation="true">
-                        <button class="btn-micro @(voto == TipoVoto.Sim ? "ativo-sim" : "")"
-                                @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Sim)">
-                            SIM
-                        </button>
-                        <button class="btn-micro @(voto == TipoVoto.Nao ? "ativo-nao" : "")"
-                                @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Nao)">
-                            NÃO
-                        </button>
-                        <button class="btn-micro @(voto == TipoVoto.Abstencao ? "ativo-abs" : "")"
-                                @onclick="() => Estado.RegistrarVoto(vereador.Id, TipoVoto.Abstencao)">
-                            ABS
-                        </button>
-                    </div>
-                }
-            </div>
-        }
-    </div>
+    </main>
 </div>
 
 <style>
     .btn {
         background: #292929;
-        color: #FAFAFA;
+        color: #f8fafc;
         border: none;
         padding: 8px 16px;
         border-radius: 8px;
@@ -509,134 +566,76 @@
         font-weight: 600;
         font-size: 0.95rem;
         transition: 0.2s;
+        /* Alinha automaticamente qualquer ícone SVG + texto dentro de qualquer .btn: */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
-    .btn:hover { background: #3C3C3C; }
-    .btn-ativo { background: #17B26A !important; color: white !important; }
-    .btn-verde { background: #059669; }
-    .btn-azul { background: #17B26A; }
-    .btn-amarelo { background: #d97706; }
-    .btn-vermelho { background: #dc2626; }
+
+        .btn:hover {
+            background: #3D3D3D;
+        }
+
+    .btn-ativo {
+        background: #0E9384 !important;
+        color: white !important;
+    }
+
+    .btn-verde {
+        background: #079455;
+    }
+
+    .btn-azul {
+        background: #0284c7;
+    }
+
+    .btn-amarelo {
+        background: #d97706;
+    }
+
+    .btn-vermelho {
+        background: #dc2626;
+    }
 
     .btn-micro {
         flex: 1;
         padding: 6px 0;
-        border: 1px solid #3C3C3C;
-        background: #292929;
-        color: #898989;
+        border: 1px solid #475569;
+        background: #0F0F0F;
+        color: #94a3b8;
         border-radius: 4px;
         cursor: pointer;
         font-size: 0.75rem;
         font-weight: bold;
     }
-    .ativo-sim { background: #17B26A !important; color: white !important; border-color: #17B26A !important; }
-    .ativo-nao { background: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
-    .ativo-abs { background: #f59e0b !important; color: white !important; border-color: #f59e0b !important; }
+
+    .ativo-sim {
+        background: #17B26A !important;
+        color: white !important;
+        border-color: #17B26A !important;
+    }
+
+    .ativo-nao {
+        background: #ef4444 !important;
+        color: white !important;
+        border-color: #ef4444 !important;
+    }
+
+    .ativo-abs {
+        background: #f59e0b !important;
+        color: white !important;
+        border-color: #f59e0b !important;
+    }
 </style>
 
 @code {
-    private string modoOperador = "painel"; // "painel" ou "pauta"
+    private string modoOperador = "painel"; // "painel", "pauta" ou "configuracoes"
 
     private string novoTipo = "Requerimento";
     private string novoNumero = "";
     private string novoAutor = "";
     private string novaEmenta = "";
-
-    // Controle das abas de configuração
-    private string subAbaConfig = "identidade"; // "identidade", "vereadores", "regras"
-    private string? mensagemSalvo = null;
-
-    private ConfiguracaoCamara configEdicao = new();
-    private Parlamentar vereadorEmEdicao = new() { Id = Guid.Empty };
-
-    private async Task SalvarIdentidadeAsync()
-    {
-        Db.Configuracoes.Update(configEdicao);
-        await Db.SaveChangesAsync();
-        Estado.DefinirConfiguracao(configEdicao);
-
-        ExibirMensagem("✓ Dados institucionais salvos e atualizados no sistema!");
-    }
-
-    private async Task SalvarRegrasAsync()
-    {
-        Db.Configuracoes.Update(configEdicao);
-        await Db.SaveChangesAsync();
-        Estado.DefinirConfiguracao(configEdicao);
-
-        ExibirMensagem("✓ Parâmetros regimentais e cronômetros salvos com sucesso!");
-    }
-
-    private async Task SalvarVereadorAsync()
-    {
-        if (string.IsNullOrWhiteSpace(vereadorEmEdicao.NomePolitico))
-            return;
-
-        if (vereadorEmEdicao.Id == Guid.Empty)
-        {
-            // 1. É um novo vereador
-            vereadorEmEdicao.Id = Guid.NewGuid();
-            Db.Parlamentares.Add(vereadorEmEdicao);
-        }
-        else
-        {
-            // 2. É uma edição: Busca o vereador já rastreado pelo EF Core e atualiza seus dados
-            var existente = await Db.Parlamentares.FindAsync(vereadorEmEdicao.Id);
-            if (existente != null)
-            {
-                existente.NomeCompleto = vereadorEmEdicao.NomeCompleto;
-                existente.NomePolitico = vereadorEmEdicao.NomePolitico;
-                existente.Partido = vereadorEmEdicao.Partido;
-                existente.CargoMesa = vereadorEmEdicao.CargoMesa;
-                existente.Ativo = vereadorEmEdicao.Ativo;
-                existente.FotoCaminho = vereadorEmEdicao.FotoCaminho;
-            }
-        }
-
-        // Salva as mudanças no PostgreSQL
-        await Db.SaveChangesAsync();
-
-        // Recarrega a bancada do banco com .AsNoTracking() para não prender na memória
-        var vereadoresAtualizados = await Db.Parlamentares
-            .AsNoTracking()
-            .OrderBy(p => p.NomePolitico)
-            .ToListAsync();
-
-        Estado.AtualizarParlamentares(vereadoresAtualizados);
-
-        CancelarEdicaoVereador();
-        ExibirMensagem("✓ Parlamentar gravado com sucesso no PostgreSQL!");
-    }
-
-    private void EditarVereador(Parlamentar v)
-    {
-        // Cria uma cópia para edição
-        vereadorEmEdicao = new Parlamentar
-        {
-            Id = v.Id,
-            NomeCompleto = v.NomeCompleto,
-            NomePolitico = v.NomePolitico,
-            Partido = v.Partido,
-            CargoMesa = v.CargoMesa,
-            Ativo = v.Ativo,
-            FotoCaminho = v.FotoCaminho
-        };
-    }
-
-    private void CancelarEdicaoVereador()
-    {
-        vereadorEmEdicao = new Parlamentar { Id = Guid.Empty };
-    }
-
-    private void ExibirMensagem(string msg)
-    {
-        mensagemSalvo = msg;
-        StateHasChanged();
-        Task.Delay(4000).ContinueWith(_ =>
-        {
-            mensagemSalvo = null;
-            InvokeAsync(StateHasChanged);
-        });
-    }
 
     private void IniciarVotacao(ItemPauta item)
     {
@@ -687,14 +686,10 @@
         WindowHelper.AbrirTelao(Services);
     }
 
-    private void GerarExtratoPdf()
-    {
-        RelatorioSessaoService.GerarEAbrirPdf(Estado);
-    }
-
     protected override async Task OnInitializedAsync()
     {
         Estado.OnMudancaEstado += AtualizarTela;
+
         try
         {
             if (Estado.SessaoAtiva == null)
@@ -790,5 +785,107 @@
     public void Dispose()
     {
         Estado.OnMudancaEstado -= AtualizarTela;
+    }
+
+    private void GerarExtratoPdf()
+    {
+        RelatorioSessaoService.GerarEAbrirPdf(Estado);
+    }
+
+    // Controle das abas de configuração
+    private string subAbaConfig = "identidade"; // "identidade", "vereadores", "regras"
+    private string? mensagemSalvo = null;
+
+    private ConfiguracaoCamara configEdicao = new();
+    private Parlamentar vereadorEmEdicao = new() { Id = Guid.Empty };
+
+    private async Task SalvarIdentidadeAsync()
+    {
+        Db.Configuracoes.Update(configEdicao);
+        await Db.SaveChangesAsync();
+        Estado.DefinirConfiguracao(configEdicao);
+
+        ExibirMensagem("Dados institucionais salvos e atualizados no sistema!");
+    }
+
+    private async Task SalvarRegrasAsync()
+    {
+        Db.Configuracoes.Update(configEdicao);
+        await Db.SaveChangesAsync();
+        Estado.DefinirConfiguracao(configEdicao);
+
+        ExibirMensagem("Parâmetros salvos com sucesso!");
+    }
+
+    private async Task SalvarVereadorAsync()
+    {
+        if (string.IsNullOrWhiteSpace(vereadorEmEdicao.NomePolitico))
+            return;
+
+        if (vereadorEmEdicao.Id == Guid.Empty)
+        {
+            // 1. É um novo vereador
+            vereadorEmEdicao.Id = Guid.NewGuid();
+            Db.Parlamentares.Add(vereadorEmEdicao);
+        }
+        else
+        {
+            // 2. É uma edição: Busca o vereador já rastreado pelo EF Core e atualiza seus dados
+            var existente = await Db.Parlamentares.FindAsync(vereadorEmEdicao.Id);
+            if (existente != null)
+            {
+                existente.NomeCompleto = vereadorEmEdicao.NomeCompleto;
+                existente.NomePolitico = vereadorEmEdicao.NomePolitico;
+                existente.Partido = vereadorEmEdicao.Partido;
+                existente.CargoMesa = vereadorEmEdicao.CargoMesa;
+                existente.Ativo = vereadorEmEdicao.Ativo;
+                existente.FotoCaminho = vereadorEmEdicao.FotoCaminho;
+            }
+        }
+
+        // Salva as mudanças no PostgreSQL
+        await Db.SaveChangesAsync();
+
+        // Recarrega a bancada do banco com .AsNoTracking() para não prender na memória
+        var vereadoresAtualizados = await Db.Parlamentares
+            .AsNoTracking()
+            .OrderBy(p => p.NomePolitico)
+            .ToListAsync();
+
+        Estado.AtualizarParlamentares(vereadoresAtualizados);
+
+        CancelarEdicaoVereador();
+        ExibirMensagem("Alterações salvas com sucesso!");
+    }
+
+    private void EditarVereador(Parlamentar v)
+    {
+        // Cria uma cópia para edição
+        vereadorEmEdicao = new Parlamentar
+        {
+            Id = v.Id,
+            NomeCompleto = v.NomeCompleto,
+            NomePolitico = v.NomePolitico,
+            Partido = v.Partido,
+            CargoMesa = v.CargoMesa,
+            Ativo = v.Ativo,
+            FotoCaminho = v.FotoCaminho
+        };
+    }
+
+    private void CancelarEdicaoVereador()
+    {
+        vereadorEmEdicao = new Parlamentar { Id = Guid.Empty };
+    }
+
+    private void ExibirMensagem(string msg)
+    {
+        mensagemSalvo = msg;
+        StateHasChanged();
+        Task.Delay(4000).ContinueWith(_ =>
+        {
+            mensagemSalvo = null;
+            InvokeAsync(StateHasChanged);
+        });
     }
 }
