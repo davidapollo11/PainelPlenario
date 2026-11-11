@@ -8,44 +8,51 @@
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
 
     <!-- CABEÇALHO -->
-    <header style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #334155;">
+    <header style="display: flex; justify-content: space-between; align-items: center; background: #171717; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #292929;">
         <div>
-            <h1 style="font-size: 1.6rem; color: #38bdf8; margin-bottom: 4px;">
+            <h1 style="font-size: 1.6rem; color: #15B79E; margin-bottom: 4px;">
                 @(Estado.SessaoAtiva?.TituloFormatado ?? "Câmara Municipal")
             </h1>
-            <p style="color: #94a3b8; font-size: 0.95rem;">
-                Status da Sessão: <strong style="color: #10b981;">EM ANDAMENTO</strong> |
-                Quórum Presente: <strong style="color: #f8fafc;">@Estado.TotalPresentes / @Estado.Parlamentares.Count</strong>
+            <p style="color: #898989; font-size: 0.95rem;">
+                Status da Sessão: <strong style="color: #17B26A;">EM ANDAMENTO</strong> |
+                Quórum Presente: <strong style="color: #FAFAFA;">@Estado.TotalPresentes / @Estado.Parlamentares.Count</strong>
             </p>
         </div>
 
         <!-- CONTROLE DE MODOS DO TELÃO -->
         <div style="display: flex; gap: 8px;">
             <button class="btn btn-verde" @onclick="GerarExtratoPdf" style="font-weight: bold;">
-                📄 Extrato PDF
+                <Blazicon Svg="Lucide.FileDown" />
+                <span>Extrato PDF</span>
             </button>
             <button class="btn btn-azul" @onclick="AbrirJanelaTelao" style="font-weight: bold;">
-                📺 Abrir Telão
+                <Blazicon Svg="Lucide.Tv" />
+                <span>Abrir Telão</span>
             </button>
             <button class="btn @(modoOperador == "configuracoes" ? "btn-ativo" : "")"
                     @onclick='() => SelecionarAba("configuracoes")' style="font-weight: bold">
-                ⚙️ Configurações
+                <Blazicon Svg="Lucide.Settings" />
+                <span>Configurações</span>
             </button>
             <button class="btn @(modoOperador == "pauta" ? "btn-ativo" : "")"
                     @onclick='() => SelecionarAba("pauta")'>
-                📋 Pauta (@(Estado.SessaoAtiva?.ItensPauta.Count ?? 0))
+                <Blazicon Svg="Lucide.SquareText" />
+                <span>Pauta (@(Estado.SessaoAtiva?.ItensPauta.Count ?? 0))</span>
             </button>
             <button class="btn @(Estado.ModoAtual == ModoTelao.QuorumPresenca && modoOperador != "pauta" ? "btn-ativo" : "")"
                     @onclick='() => SelecionarAba("painel", ModoTelao.QuorumPresenca)'>
-                👥 Quórum
+                <Blazicon Svg="Lucide.Users" /> 
+                <span>Quórum</span>
             </button>
             <button class="btn @(Estado.ModoAtual == ModoTelao.TribunaCronometro && modoOperador != "pauta" ? "btn-ativo" : "")"
                     @onclick='() => SelecionarAba("painel", ModoTelao.TribunaCronometro)'>
-                ⏱️ Tribuna
+                <Blazicon Svg="Lucide.Timer" /> 
+                <span>Tribuna</span>
             </button>
             <button class="btn @((Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado) && modoOperador != "pauta" ? "btn-ativo" : "")"
                     @onclick='() => SelecionarAba("painel", ModoTelao.VotacaoNominal)'>
-                🗳️ Votação
+                <Blazicon Svg="Lucide.Vote" />
+                <span>Votação</span>
             </button>
         </div>
     </header>
@@ -56,29 +63,33 @@
     <!-- ======================================================== -->
     @if (modoOperador == "configuracoes")
     {
-        <div style="background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155; margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 16px;">
-                <h2 style="color: #38bdf8; font-size: 1.4rem; font-weight: 700;">
-                    ⚙️ Configurações & Parâmetros do Plenário
+        <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #292929; padding-bottom: 16px;">
+                <h2 style="color: #15B79E; font-size: 1.4rem; font-weight: 700;">
+                    <Blazicon Svg="Lucide.Settings" />
+                    <span>Configurações & Parâmetros do Plenário</span>
                 </h2>
 
                 <!-- SUB-ABAS DE CONFIGURAÇÃO -->
                 <div style="display: flex; gap: 8px;">
                     <button class="btn @(subAbaConfig == "identidade" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "identidade"'>
-                        🏛️ Identidade da Câmara
+                        <Blazicon Svg="Lucide.Warehouse" />
+                        <span>Identidade da Câmara</span>
                     </button>
                     <button class="btn @(subAbaConfig == "vereadores" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "vereadores"'>
-                        👥 Vereadores (@Estado.Parlamentares.Count)
+                        <Blazicon Svg="Lucide.Users" />
+                        <span>Vereadores (@Estado.Parlamentares.Count)</span>
                     </button>
                     <button class="btn @(subAbaConfig == "regras" ? "btn-ativo" : "")" @onclick='() => subAbaConfig = "regras"'>
-                        ⏱️ Cronômetro & Regras
+                        <Blazicon Svg="Lucide.Timer" />
+                        <span>Cronômetro & Regras</span>
                     </button>
                 </div>
             </div>
 
             @if (mensagemSalvo != null)
             {
-                <div style="background: #065f46; color: #a7f3d0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
+                <div style="background: #17B26A; color: #a7f3d0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
                     @mensagemSalvo
                 </div>
             }
@@ -90,64 +101,66 @@
             {
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div>
-                        <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Nome Oficial da Câmara</label>
-                        <input @bind="configEdicao.NomeCamara" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" placeholder="Ex: Câmara Municipal de Caruaru" />
+                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Nome Oficial da Câmara</label>
+                        <input @bind="configEdicao.NomeCamara" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Câmara Municipal de Caruaru" />
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Slogan Institucional</label>
-                        <input @bind="configEdicao.Slogan" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" placeholder="Ex: A Casa do Povo em defesa da cidadania" />
+                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Slogan Institucional</label>
+                        <input @bind="configEdicao.Slogan" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: A Casa do Povo em defesa da cidadania" />
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Município (Cidade)</label>
-                        <input @bind="configEdicao.Cidade" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" placeholder="Ex: Caruaru" />
+                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Município (Cidade)</label>
+                        <input @bind="configEdicao.Cidade" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Caruaru" />
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">UF (Estado)</label>
-                        <input @bind="configEdicao.Estado" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" placeholder="Ex: PE" />
+                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">UF (Estado)</label>
+                        <input @bind="configEdicao.Estado" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: PE" />
                     </div>
 
                     <div style="grid-column: span 2;">
-                        <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Identificação da Legislatura</label>
-                        <input @bind="configEdicao.Legislatura" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" placeholder="Ex: 19ª Legislatura (2025-2028)" />
+                        <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Identificação da Legislatura</label>
+                        <input @bind="configEdicao.Legislatura" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: 19ª Legislatura (2025-2028)" />
                     </div>
                 </div>
 
                 <div style="margin-top: 24px; text-align: right;">
                     <button class="btn btn-verde" @onclick="SalvarIdentidadeAsync" style="padding: 10px 24px; font-size: 1rem;">
-                        💾 Salvar Dados Institucionais
+                        <Blazicon Svg="Lucide.Save"/> 
+                        <span>Salvar</span>
                     </button>
                 </div>
             }
             else if (subAbaConfig == "vereadores")
             {
             <!-- FORMULÁRIO DE NOVO / EDITAR VEREADOR -->
-            <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 24px;">
-                <h3 style="color: #38bdf8; font-size: 1.1rem; margin-bottom: 14px;">
-                    @(vereadorEmEdicao.Id == Guid.Empty ? "➕ Cadastrar Novo Parlamentar" : "✏️ Editando Parlamentar")
+            <div style="background: #292929; padding: 20px; border-radius: 8px; border: 1px solid #292929; margin-bottom: 24px;">
+                <h3 style="color: #15B79E; font-size: 1.1rem; margin-bottom: 14px;">
+                        <Blazicon Svg="@(vereadorEmEdicao.Id == Guid.Empty ? Lucide.UserPlus : Lucide.Pencil)" />
+                        @(vereadorEmEdicao.Id == Guid.Empty ? "Cadastrar Parlamentar" : "Editar Parlamentar")
                 </h3>
 
                 <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1.5fr auto auto; gap: 12px; align-items: end;">
                     <div>
-                        <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Nome Completo</label>
-                        <input @bind="vereadorEmEdicao.NomeCompleto" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Nome Civil" />
+                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Nome Completo</label>
+                        <input @bind="vereadorEmEdicao.NomeCompleto" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Nome Civil" />
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Nome Político (Painel/Urna)</label>
-                        <input @bind="vereadorEmEdicao.NomePolitico" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: Ver. Zé da Farmácia" />
+                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Nome Político (Painel)</label>
+                        <input @bind="vereadorEmEdicao.NomePolitico" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Zé da Farmácia" />
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Partido</label>
-                        <input @bind="vereadorEmEdicao.Partido" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: MDB" />
+                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Partido</label>
+                        <input @bind="vereadorEmEdicao.Partido" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: MDB" />
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Cargo na Mesa</label>
-                        <select @bind="vereadorEmEdicao.CargoMesa" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;">
+                        <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Cargo na Mesa</label>
+                        <select @bind="vereadorEmEdicao.CargoMesa" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;">
                             <option value="Vereador">Vereador</option>
                             <option value="Presidente">Presidente</option>
                             <option value="Vice-Presidente">Vice-Presidente</option>
@@ -164,7 +177,8 @@
 
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-verde" @onclick="SalvarVereadorAsync" style="height: 38px;">
-                            💾 Gravar
+                            <Blazicon Svg="Lucide.Save" />
+                            <span>Gravar</span>
                         </button>
                         @if (vereadorEmEdicao.Id != Guid.Empty)
                         {
@@ -180,19 +194,19 @@
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 @foreach (var v in Estado.Parlamentares)
                 {
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 16px; border-radius: 8px; border: 1px solid #334155;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #292929; padding: 12px 16px; border-radius: 8px; border: 1px solid #292929;">
                         <div>
-                            <strong style="color: #f8fafc; font-size: 1.05rem;">@v.NomePolitico</strong>
-                            <span style="color: #94a3b8; font-size: 0.9rem; margin-left: 8px;">(@v.NomeCompleto)</span>
-                            <span style="background: #334155; color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px;">
+                            <strong style="color: #FAFAFA; font-size: 1.05rem;">@v.NomePolitico</strong>
+                            <span style="color: #898989; font-size: 0.9rem; margin-left: 8px;">(@v.NomeCompleto)</span>
+                                <span style="background: #292929; color: #15B79E; padding: 2px 8px; border: 1px solid #15B79E; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px;">
                                 @v.Partido
                             </span>
-                            <span style="color: #e2e8f0; font-size: 0.85rem; margin-left: 10px;">
+                            <span style="color: #FAFAFA; font-size: 0.85rem; margin-left: 10px;">
                                 Cargo: <strong>@v.CargoMesa</strong>
                             </span>
                             @if (!v.Ativo)
                             {
-                                <span style="background: #7f1d1d; color: #fca5a5; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">
+                                <span style="background: #F04438; color: #FAFAFA; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">
                                     LICENCIADO / INATIVO
                                 </span>
                             }
@@ -200,7 +214,8 @@
 
                         <div>
                             <button class="btn" @onclick="() => EditarVereador(v)" style="padding: 6px 12px; font-size: 0.85rem;">
-                                ✏️ Editar
+                                <Blazicon Svg="Lucide.Pencil" />
+                                <span>Editar</span>
                             </button>
                         </div>
                     </div>
@@ -211,34 +226,35 @@
             {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div>
-                    <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Pequeno Expediente (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoPequenoExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" />
+                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Pequeno Expediente (minutos)</label>
+                    <input type="number" @bind="configEdicao.TempoPequenoExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Grande Expediente / Tribuna (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoGrandeExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" />
+                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Grande Expediente / Tribuna (minutos)</label>
+                    <input type="number" @bind="configEdicao.TempoGrandeExpedienteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Aparte Regimental (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoAparteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" />
+                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Aparte Regimental (minutos)</label>
+                    <input type="number" @bind="configEdicao.TempoAparteMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Tempo de Questão de Ordem (minutos)</label>
-                    <input type="number" @bind="configEdicao.TempoQuestaoOrdemMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" />
+                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Tempo de Questão de Ordem (minutos)</label>
+                    <input type="number" @bind="configEdicao.TempoQuestaoOrdemMinutos" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Total de Cadeiras da Câmara (Fixadas por Lei)</label>
-                    <input type="number" @bind="configEdicao.TotalCadeiras" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid #475569;" />
+                    <label style="display: block; font-size: 0.85rem; color: #898989; margin-bottom: 6px;">Total de Cadeiras da Câmara (Fixadas por Lei)</label>
+                    <input type="number" @bind="configEdicao.TotalCadeiras" style="width: 100%; padding: 10px; border-radius: 6px; background: #292929; color: white; border: 1px solid #3C3C3C;" />
                 </div>
             </div>
 
             <div style="margin-top: 24px; text-align: right;">
                 <button class="btn btn-verde" @onclick="SalvarRegrasAsync" style="padding: 10px 24px; font-size: 1rem;">
-                    💾 Salvar Parâmetros Regimentais
+                    <Blazicon Svg="Lucide.Save" />
+                    <span>Salvar</span>
                 </button>
             </div>
             }
@@ -248,31 +264,33 @@
     @if (modoOperador == "pauta")
     {
         <!-- ABA DE GESTÃO DA PAUTA -->
-        <div style="background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155; margin-bottom: 24px;">
-            <h2 style="color: #38bdf8; font-size: 1.4rem; margin-bottom: 16px;">
-                📋 Ordem do Dia (Pauta de Matérias)
+        <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
+            <h2 style="color: #15B79E; font-size: 1.4rem; margin-bottom: 16px;">
+                <Blazicon Svg="Lucide.SquareText" /> 
+                <span>Pauta de Matérias</span>
             </h2>
 
             <!-- FORMULÁRIO RÁPIDO PARA ADICIONAR MATÉRIA -->
-            <div style="display: grid; grid-template-columns: 200px 150px 250px 1fr auto; gap: 12px; background: #0f172a; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #334155; align-items: end;">
+            <div style="display: grid; grid-template-columns: 200px 150px 250px 1fr auto; gap: 12px; background: #292929; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #292929; align-items: end;">
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Tipo</label>
-                    <input @bind="novoTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: Projeto de Lei" />
+                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Tipo</label>
+                    <input @bind="novoTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Projeto de Lei" />
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Número/Ano</label>
-                    <input @bind="novoNumero" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: 005/2026" />
+                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Número/Ano</label>
+                    <input @bind="novoNumero" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: 005/2026" />
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Autor</label>
-                    <input @bind="novoAutor" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Ex: Ver. Carlos Silva" />
+                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Autor</label>
+                    <input @bind="novoAutor" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Ex: Ver. Carlos Silva" />
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Ementa (Resumo)</label>
-                    <input @bind="novaEmenta" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;" placeholder="Descrição do projeto..." />
+                    <label style="display: block; font-size: 0.8rem; color: #898989; margin-bottom: 4px;">Ementa (Resumo)</label>
+                    <input @bind="novaEmenta" style="width: 100%; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #3C3C3C;" placeholder="Descrição do projeto..." />
                 </div>
                 <button class="btn btn-verde" @onclick="AdicionarNovaMateria" style="height: 38px;">
-                    + Inserir
+                    <Blazicon Svg="Lucide.SquarePlus" />
+                    <span>Inserir</span>
                 </button>
             </div>
 
@@ -284,18 +302,18 @@
                     {
                         var ehAtual = Estado.MateriaAtual?.Id == item.Id;
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: @(ehAtual ? "#0c4a6e" : "#0f172a"); padding: 16px 20px; border-radius: 8px; border: 1px solid @(ehAtual ? "#0284c7" : "#334155");">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: @(ehAtual ? "#3C3C3C" : "#292929"); padding: 16px 20px; border-radius: 8px; border: 1px solid @(ehAtual ? "#17B26A" : "#292929");">
                             <div style="flex: 1;">
                                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
-                                    <span style="background: #334155; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                                    <span style="background: #292929; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
                                         #@item.Ordem
                                     </span>
-                                    <strong style="color: #38bdf8; font-size: 1.1rem;">@item.Tipo @item.Numero</strong>
-                                    <span style="color: #94a3b8; font-size: 0.85rem;">por @item.Autor</span>
+                                    <strong style="color: #15B79E; font-size: 1.1rem;">@item.Tipo @item.Numero</strong>
+                                    <span style="color: #898989; font-size: 0.85rem;">por @item.Autor</span>
 
                                     @if (item.Status == StatusItemPauta.Concluido)
                                     {
-                                        <span style="margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; background: @(item.Resultado == ResultadoVotacao.Aprovado ? "#065f46" : "#991b1b"); color: white;">
+                                        <span style="margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; background: @(item.Resultado == ResultadoVotacao.Aprovado ? "#17B26A" : "#991b1b"); color: white;">
                                             @item.Resultado?.ToString().ToUpper()
                                         </span>
                                     }
@@ -305,7 +323,8 @@
 
                             <div style="margin-left: 20px;">
                                 <button class="btn btn-azul" @onclick="() => IniciarVotacao(item)">
-                                    @(ehAtual ? "● Em Votação" : "▶ Iniciar Votação")
+                                    <Blazicon Svg="@(ehAtual ? Lucide.Vote : Lucide.Play)" />
+                                    <span>@(ehAtual ? "Em Votação" : "Iniciar Votação")</span>
                                 </button>
                             </div>
                         </div>
@@ -319,8 +338,8 @@
         @if (Estado.ModoAtual == ModoTelao.TribunaCronometro)
         {
             <!-- MODO CRONÔMETRO -->
-            <div style="background: #1e293b; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #334155; margin-bottom: 24px;">
-                <h2 style="color: #94a3b8; font-size: 1.2rem; text-transform: uppercase;">Tempo de Discurso na Tribuna</h2>
+            <div style="background: #171717; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #292929; margin-bottom: 24px;">
+                <h2 style="color: #898989; font-size: 1.2rem; text-transform: uppercase;">Tempo de Discurso na Tribuna</h2>
 
                 <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")">
                     @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
@@ -328,34 +347,42 @@
 
                 <div style="display: flex; justify-content: center; gap: 12px;">
                     <button class="btn btn-verde" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoGrandeExpedienteMinutos * 60)">
-                        ▶ Grande Exp. (@Estado.Configuracao.TempoGrandeExpedienteMinutos min)
+                        <Blazicon Svg="Lucide.Play" />
+                        <span>Grande Exp. (@Estado.Configuracao.TempoGrandeExpedienteMinutos min)</span>
                     </button>
                     <button class="btn btn-azul" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoPequenoExpedienteMinutos * 60)">
-                        ▶ Pequeno Exp. (@Estado.Configuracao.TempoPequenoExpedienteMinutos min)
+                        <Blazicon Svg="Lucide.Play" />
+                        <span>Pequeno Exp. (@Estado.Configuracao.TempoPequenoExpedienteMinutos min)</span>
                     </button>
                     <button class="btn btn-amarelo" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoAparteMinutos * 60)">
-                        ▶ Aparte (@Estado.Configuracao.TempoAparteMinutos min)
+                        <Blazicon Svg="Lucide.Play" />
+                        <span>Aparte (@Estado.Configuracao.TempoAparteMinutos min)</span>
                     </button>
-                    <button class="btn" style="background: #475569;" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoQuestaoOrdemMinutos * 60)">
-                        ▶ Questão de Ordem (@Estado.Configuracao.TempoQuestaoOrdemMinutos min)
+                    <button class="btn" style="background: #3C3C3C;" @onclick="() => Estado.IniciarCronometro(Estado.Configuracao.TempoQuestaoOrdemMinutos * 60)">
+                        <Blazicon Svg="Lucide.Play" />
+                        <span>Questão de Ordem (@Estado.Configuracao.TempoQuestaoOrdemMinutos min)</span>
                     </button>
                     <button class="btn" @onclick="() => Estado.PausarOuRetomarCronometro()">
-                        @(Estado.CronometroRodando ? "⏸ Pausar" : "▶ Retomar")
+                        <Blazicon Svg="@(Estado.CronometroRodando ? Lucide.Pause : Lucide.Play)" />
+                        <span>@(Estado.CronometroRodando ? "Pausar" : "Retomar")</span>
                     </button>
-                    <button class="btn btn-vermelho" @onclick="() => Estado.ZerarCronometro()">⏹ Zerar</button>
+                    <button class="btn btn-vermelho" @onclick="() => Estado.ZerarCronometro()">
+                        <Blazicon Svg="Lucide.SquareStop" />
+                        <span>Zerar</span>
+                    </button>
                 </div>
             </div>
         }
         else if (Estado.ModoAtual == ModoTelao.VotacaoNominal || Estado.ModoAtual == ModoTelao.ResultadoProclamado)
         {
             <!-- MODO VOTAÇÃO & PROCLAMAÇÃO -->
-            <div style="background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155; margin-bottom: 24px;">
+            <div style="background: #171717; border-radius: 12px; padding: 24px; border: 1px solid #292929; margin-bottom: 24px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div>
-                        <span style="background: #0284c7; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">
+                        <span style="background: #17B26A; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">
                             @(Estado.MateriaAtual?.Tipo ?? "Matéria") @(Estado.MateriaAtual?.Numero ?? "")
                         </span>
-                        <h2 style="font-size: 1.3rem; margin-top: 6px; color: #f8fafc;">
+                        <h2 style="font-size: 1.3rem; margin-top: 6px; color: #FAFAFA;">
                             @(Estado.MateriaAtual?.Ementa ?? "Nenhuma matéria selecionada")
                         </h2>
                     </div>
@@ -363,34 +390,36 @@
                     @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
                     {
                         <button class="btn btn-verde" @onclick="() => Estado.VotacaoSimbolicaAprovarTodos()">
-                            ⚡ Aprovação Simbólica (Todos SIM)
+                            Aprovação Simbólica
                         </button>
                     }
                 </div>
 
                 <!-- PLACAR AO VIVO -->
                 <div style="display: flex; gap: 16px; margin: 16px 0;">
-                    <div class="placar-badge" style="color: #10b981;">SIM: @Estado.TotalSim</div>
+                    <div class="placar-badge" style="color: #17B26A;">SIM: @Estado.TotalSim</div>
                     <div class="placar-badge" style="color: #ef4444;">NÃO: @Estado.TotalNao</div>
                     <div class="placar-badge" style="color: #f59e0b;">ABST.: @Estado.TotalAbstencao</div>
-                    <div class="placar-badge" style="color: #94a3b8;">TOTAL: @Estado.TotalVotantes</div>
+                    <div class="placar-badge" style="color: #898989;">TOTAL: @Estado.TotalVotantes</div>
                 </div>
 
                 <!-- ÁREA DE PROCLAMAÇÃO PELO OPERADOR -->
-                <div style="border-top: 1px solid #334155; padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="border-top: 1px solid #292929; padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
                     @if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
                     {
-                        <span style="color: #94a3b8; font-size: 0.95rem;">
+                        <span style="color: #898989; font-size: 0.95rem;">
                             Aguarde a manifestação do Presidente e confirme a proclamação oficial:
                         </span>
                         <div style="display: flex; gap: 12px;">
                             <button class="btn btn-verde" style="font-size: 1.05rem; padding: 10px 20px;"
                             @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Aprovado)">
-                                🏆 Proclamar: APROVADO
+                                <Blazicon Svg="Lucide.Trophy" />
+                                <span>Proclamar: APROVADO</span>
                             </button>
                             <button class="btn btn-vermelho" style="font-size: 1.05rem; padding: 10px 20px;"
                             @onclick="() => Estado.ProclamarResultado(ResultadoVotacao.Rejeitado)">
-                                ❌ Proclamar: REJEITADO
+                                <Blazicon Svg="Lucide.OctagonX" />
+                                <span>Proclamar: REJEITADO</span>
                             </button>
                         </div>
                     }
@@ -398,13 +427,14 @@
                     {
                         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                             <div>
-                                <span style="color: #94a3b8; font-size: 0.9rem;">STATUS OFICIAL:</span>
-                                <strong style="margin-left: 8px; font-size: 1.2rem; color: @(Estado.ResultadoAtual == ResultadoVotacao.Aprovado ? "#10b981" : "#ef4444")">
+                                <span style="color: #898989; font-size: 0.9rem;">STATUS OFICIAL:</span>
+                                <strong style="margin-left: 8px; font-size: 1.2rem; color: @(Estado.ResultadoAtual == ResultadoVotacao.Aprovado ? "#17B26A" : "#ef4444")">
                                     MATÉRIA @Estado.ResultadoAtual?.ToString().ToUpper()
                                 </strong>
                             </div>
                             <button class="btn btn-amarelo" @onclick="() => Estado.ReabrirVotacao()">
-                                ↩ Reabrir Votação / Retificar
+                                <Blazicon Svg="Lucide.Undo2" />
+                                <span>Retificar</span>
                             </button>
                         </div>
                     }
@@ -428,14 +458,16 @@
                  style="cursor: pointer;"
                  @onclick="() => { if (Estado.ModoAtual != ModoTelao.VotacaoNominal) Estado.AlternarPresenca(vereador.Id); }">
 
-                <div style="font-size: 2.2rem; margin-bottom: 8px;">👤</div>
-                <strong style="display: block; font-size: 1.1rem; color: #f8fafc;">@vereador.NomePolitico</strong>
-                <span style="font-size: 0.85rem; color: #94a3b8;">@vereador.Partido - @vereador.CargoMesa</span>
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">
+                    <Blazicon Svg="Lucide.User" />
+                </div>
+                <strong style="display: block; font-size: 1.1rem; color: #FAFAFA;">@vereador.NomePolitico</strong>
+                <span style="font-size: 0.85rem; color: #898989;">@vereador.Partido - @vereador.CargoMesa</span>
 
                 <div style="margin-top: 10px;">
                     @if (presente)
                     {
-                        <span style="color: #10b981; font-size: 0.85rem; font-weight: bold;">● Presente</span>
+                        <span style="color: #17B26A; font-size: 0.85rem; font-weight: bold;">● Presente</span>
                     }
                     else
                     {
@@ -468,8 +500,8 @@
 
 <style>
     .btn {
-        background: #334155;
-        color: #f8fafc;
+        background: #292929;
+        color: #FAFAFA;
         border: none;
         padding: 8px 16px;
         border-radius: 8px;
@@ -478,25 +510,25 @@
         font-size: 0.95rem;
         transition: 0.2s;
     }
-    .btn:hover { background: #475569; }
-    .btn-ativo { background: #0284c7 !important; color: white !important; }
+    .btn:hover { background: #3C3C3C; }
+    .btn-ativo { background: #17B26A !important; color: white !important; }
     .btn-verde { background: #059669; }
-    .btn-azul { background: #0284c7; }
+    .btn-azul { background: #17B26A; }
     .btn-amarelo { background: #d97706; }
     .btn-vermelho { background: #dc2626; }
 
     .btn-micro {
         flex: 1;
         padding: 6px 0;
-        border: 1px solid #475569;
-        background: #0f172a;
-        color: #94a3b8;
+        border: 1px solid #3C3C3C;
+        background: #292929;
+        color: #898989;
         border-radius: 4px;
         cursor: pointer;
         font-size: 0.75rem;
         font-weight: bold;
     }
-    .ativo-sim { background: #10b981 !important; color: white !important; border-color: #10b981 !important; }
+    .ativo-sim { background: #17B26A !important; color: white !important; border-color: #17B26A !important; }
     .ativo-nao { background: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
     .ativo-abs { background: #f59e0b !important; color: white !important; border-color: #f59e0b !important; }
 </style>

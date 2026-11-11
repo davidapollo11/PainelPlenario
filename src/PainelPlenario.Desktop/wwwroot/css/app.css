@@ -2,12 +2,12 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
 body {
-    background-color: #0f172a; /* Azul marinho escuro sofisticado */
-    color: #f8fafc;
+    background-color: #0F0F0F;
+    color: #FAFAFA;
     overflow-x: hidden;
 }
 
@@ -39,7 +39,7 @@ body {
 
 /* Placar de Quórum e Votos */
 .placar-badge {
-    background-color: #1e293b;
+    background-color: #292929;
     border: 1px solid #475569;
     padding: 10px 20px;
     border-radius: 8px;
@@ -56,8 +56,8 @@ body {
 }
 
 .card-vereador {
-    background: #1e293b;
-    border: 2px solid #334155;
+    background: #171717;
+    border: 1px solid #292929;
     border-radius: 12px;
     padding: 15px;
     text-align: center;
@@ -65,7 +65,7 @@ body {
 }
 
     .card-vereador.presente {
-        border-color: #10b981; /* Verde */
+        border-color: #17B26A; /* Verde */
     }
 
     .card-vereador.ausente {
@@ -75,7 +75,7 @@ body {
 
     .card-vereador.voto-sim {
         background-color: #064e3b;
-        border-color: #10b981;
+        border-color: #17B26A;
     }
 
     .card-vereador.voto-nao {
@@ -99,7 +99,7 @@ body {
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     letter-spacing: 4px;
-    color: #10b981;
+    color: #17B26A;
 }
 
 .cronometro-alerta {
