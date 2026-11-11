@@ -79,9 +79,11 @@
 
         <!-- RODAPÉ DA SIDEBAR -->
         <div class="sidebar-footer">
-            <button class="btn btn-verde" @onclick="GerarExtratoPdf" style="width: 100%; padding: 10px;">
-                <Blazicon Svg="Lucide.FileText" />
-                <span>Extrato PDF</span>
+            <button class="sidebar-item pdf" @onclick="() => confirmarExportacaoPdf = true">
+                <span class="sidebar-item-left">
+                    <Blazicon Svg="Lucide.FileDown" />
+                    <span>Extrato PDF</span>
+                </span>
             </button>
         </div>
     </aside>
@@ -553,6 +555,32 @@
 
         </div>
     </main>
+
+    @if (confirmarExportacaoPdf)
+    {
+        <div class="modal-overlay" @onclick="() => confirmarExportacaoPdf = false">
+            <div class="modal-card" @onclick:stopPropagation="true">
+                <div class="modal-header-icon">
+                    <Blazicon Svg="Lucide.FileDown" />
+                </div>
+                <h3 style="color: #FAFAFA; font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">
+                    Exportar Extrato da Sessão
+                </h3>
+                <p style="color: #898989; font-size: 0.92rem; line-height: 1.5; margin-bottom: 22px;">
+                    Deseja gerar o relatório oficial em PDF com as presenças e votações registradas até o momento?
+                </p>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button class="btn" @onclick="() => confirmarExportacaoPdf = false">
+                        Cancelar
+                    </button>
+                    <button class="btn btn-verde" @onclick="GerarExtratoPdf">
+                        <Blazicon Svg="Lucide.Check" />
+                        <span>Gerar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 <style>
@@ -636,6 +664,8 @@
     private string novoNumero = "";
     private string novoAutor = "";
     private string novaEmenta = "";
+
+    private bool confirmarExportacaoPdf = false;
 
     private void IniciarVotacao(ItemPauta item)
     {
@@ -789,6 +819,7 @@
 
     private void GerarExtratoPdf()
     {
+        confirmarExportacaoPdf = false;
         RelatorioSessaoService.GerarEAbrirPdf(Estado);
     }
 
