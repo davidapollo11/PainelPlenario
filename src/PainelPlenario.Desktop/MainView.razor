@@ -541,20 +541,34 @@
 
         if (vereadorEmEdicao.Id == Guid.Empty)
         {
-            // Novo vereador
+            // 1. É um novo vereador
             vereadorEmEdicao.Id = Guid.NewGuid();
             Db.Parlamentares.Add(vereadorEmEdicao);
         }
         else
         {
-            // Atualizar existente
-            Db.Parlamentares.Update(vereadorEmEdicao);
+            // 2. É uma edição: Busca o vereador já rastreado pelo EF Core e atualiza seus dados
+            var existente = await Db.Parlamentares.FindAsync(vereadorEmEdicao.Id);
+            if (existente != null)
+            {
+                existente.NomeCompleto = vereadorEmEdicao.NomeCompleto;
+                existente.NomePolitico = vereadorEmEdicao.NomePolitico;
+                existente.Partido = vereadorEmEdicao.Partido;
+                existente.CargoMesa = vereadorEmEdicao.CargoMesa;
+                existente.Ativo = vereadorEmEdicao.Ativo;
+                existente.FotoCaminho = vereadorEmEdicao.FotoCaminho;
+            }
         }
 
+        // Salva as mudanças no PostgreSQL
         await Db.SaveChangesAsync();
 
-        // Recarrega do banco e atualiza a memória
-        var vereadoresAtualizados = await Db.Parlamentares.OrderBy(p => p.NomePolitico).ToListAsync();
+        // Recarrega a bancada do banco com .AsNoTracking() para não prender na memória
+        var vereadoresAtualizados = await Db.Parlamentares
+            .AsNoTracking()
+            .OrderBy(p => p.NomePolitico)
+            .ToListAsync();
+
         Estado.AtualizarParlamentares(vereadoresAtualizados);
 
         CancelarEdicaoVereador();
