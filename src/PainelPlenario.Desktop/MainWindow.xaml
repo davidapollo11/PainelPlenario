@@ -6,7 +6,7 @@
         Title="Painel de Plenário - Console do Operador" 
         Height="800" Width="1200"
         WindowState="Maximized"
-        Background="#0f172a">
+        Background="#0F0F0F">
     <Grid>
         <blazor:BlazorWebView HostPage="wwwroot/index.html" Services="{DynamicResource services}">
             <blazor:BlazorWebView.RootComponents>

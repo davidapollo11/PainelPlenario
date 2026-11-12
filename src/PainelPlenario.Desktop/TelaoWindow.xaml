@@ -5,7 +5,8 @@
         xmlns:local="clr-namespace:PainelPlenario.Desktop"
         Title="Telão de Plenário - Projeção Pública" 
         Height="720" Width="1280"
-        Background="#0f172a">
+        WindowStartupLocation="Manual"
+        Background="#0F0F0F">
     <Grid>
         <blazor:BlazorWebView HostPage="wwwroot/index.html" Services="{DynamicResource services}">
             <blazor:BlazorWebView.RootComponents>
