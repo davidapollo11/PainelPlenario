@@ -486,6 +486,37 @@
                                 }
                             </button>
                             <button class="btn btn-vermelho" @onclick="() => Estado.ZerarCronometro()"><Blazicon Svg="Lucide.Square" /> Zerar</button>
+                            <div style="display:flex; justify-content: center; gap: 12px;">
+                                <input type=number @bind="minutosAdicionais" style="width: 4vw; padding: 8px; border-radius: 6px; background: #171717; color: white; border: 1px solid #292929;" placeholder="5 (min)" />
+                                <button class="btn btn-verde"
+                                        @onclick="() => AdicionarTempoPersonalizado()"><Blazicon Svg="Lucide.Plus" /></button>
+                            </div>
+                            <div style="display:flex; justify-content: center; gap: 12px;">
+                                <button class="btn btn-vazado mais"
+                                        @onclick="() => Estado.AdicionarTempo(30)">
+                                    <Blazicon Svg="Lucide.Plus" /> 30s
+                                </button>
+                                <button class="btn btn-vazado menos"
+                                        @onclick="() => Estado.SubtrairTempo(30)">
+                                    <Blazicon Svg="Lucide.Minus" /> 30s
+                                </button>
+                                <button class="btn btn-vazado mais"
+                                        @onclick="() => Estado.AdicionarTempo(15)">
+                                    <Blazicon Svg="Lucide.Plus" /> 15s
+                                </button>
+                                <button class="btn btn-vazado menos"
+                                        @onclick="() => Estado.SubtrairTempo(15)">
+                                    <Blazicon Svg="Lucide.Minus" /> 15s
+                                </button>
+                                <button class="btn btn-vazado mais"
+                                        @onclick="() => Estado.AdicionarTempo(5)">
+                                    <Blazicon Svg="Lucide.Plus" /> 5s
+                                </button>
+                                <button class="btn btn-vazado menos"
+                                        @onclick="() => Estado.SubtrairTempo(5)">
+                                    <Blazicon Svg="Lucide.Minus" /> 5s
+                                </button>
+                            </div>
                         </div>
                     </div>
                 }
@@ -692,6 +723,20 @@
         background: #dc2626;
     }
 
+    .btn-vazado {
+        background: transparent;
+    }
+
+    .mais {
+        border: 1px solid #079455;
+        color: #079455;
+    }
+
+    .menos {
+        border: 1px solid #dc2626;
+        color: #dc2626;
+    }
+
     .btn-micro {
         flex: 1;
         padding: 6px 0;
@@ -730,6 +775,8 @@
     private string novoNumero = "";
     private string novoAutor = "";
     private string novaEmenta = "";
+
+    private int minutosAdicionais = 1;
 
     private bool confirmarExportacaoPdf = false;
 
@@ -1012,5 +1059,13 @@
             mensagemSalvo = null;
             InvokeAsync(StateHasChanged);
         });
+    }
+
+    private void AdicionarTempoPersonalizado()
+    {
+        if (minutosAdicionais <= 0)
+            return;
+
+        Estado.AdicionarTempo(minutosAdicionais * 60);
     }
 }

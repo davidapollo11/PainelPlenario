@@ -159,6 +159,14 @@ namespace PainelPlenario.Core.Services
             TempoRestanteSegundos += segundosAdicionais;
             Notificar();
         }
+
+        public void SubtrairTempo(int segundosAdicionais)
+        {
+            TempoRestanteSegundos -= segundosAdicionais;
+            if (TempoRestanteSegundos <= 0)
+                TempoRestanteSegundos += segundosAdicionais; //volta ao que estava
+            Notificar();
+        }
         public void ZerarCronometro()
         {
             PararTimerInterno();
