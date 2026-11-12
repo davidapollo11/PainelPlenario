@@ -2,11 +2,12 @@
 @inject PlenarioStateService Estado
 @inject IServiceProvider Services
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.DependencyInjection
 @using PainelPlenario.Data
 @inject PlenarioDbContext Db
 
 <div class="console-layout">
-
+    
     <!-- ======================================================== -->
     <!-- BARRA LATERAL VERTICAL (ESQUERDA)                        -->
     <!-- ======================================================== -->
@@ -199,6 +200,44 @@
                                 }
                             </h3>
 
+                            <!-- FOTO DO PARLAMENTAR -->
+                            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #292929;">
+                                @{
+                                    var fotoPreview = FotoHelper.ObterDataUrl(vereadorEmEdicao.FotoCaminho);
+                                }
+                                <div style="width: 68px; height: 68px; border-radius: 50%; background: #171717; border: 2px solid #292929; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    @if (!string.IsNullOrEmpty(fotoPreview))
+                                    {
+                                        <img src="@fotoPreview" alt="Foto" style="width: 100%; height: 100%; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <Blazicon Svg="Lucide.User" style="width: 30px; height: 30px; color: #898989;" />
+                                    }
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <label class="btn" style="cursor: pointer;">
+                                            <Blazicon Svg="Lucide.Camera" />
+                                            <span>@(string.IsNullOrEmpty(vereadorEmEdicao.FotoCaminho) ? "Selecionar Foto" : "Trocar Foto")</span>
+                                            <InputFile OnChange="AoSelecionarFotoVereadorAsync" accept=".jpg,.jpeg,.png,.webp" style="display: none;" />
+                                        </label>
+
+                                        @if (!string.IsNullOrEmpty(vereadorEmEdicao.FotoCaminho))
+                                        {
+                                            <button type="button" class="btn" @onclick="RemoverFotoEmEdicao" style="color: #fca5a5;">
+                                                <Blazicon Svg="Lucide.X" />
+                                                <span>Remover</span>
+                                            </button>
+                                        }
+                                    </div>
+                                    <span style="font-size: 0.78rem; color: #898989;">
+                                        JPG, PNG ou WEBP (redimensionada automaticamente)
+                                    </span>
+                                </div>
+                            </div>
+
                             <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1.5fr auto auto; gap: 12px; align-items: end;">
                                 <div>
                                     <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Nome Completo</label>
@@ -251,21 +290,38 @@
                             @foreach (var v in Estado.Parlamentares)
                             {
                                 <div style="display: flex; justify-content: space-between; align-items: center; background: #0F0F0F; padding: 12px 16px; border-radius: 8px; border: 1px solid #292929;">
-                                    <div>
-                                        <strong style="color: #f8fafc; font-size: 1.05rem;">@v.NomePolitico</strong>
-                                        <span style="color: #94a3b8; font-size: 0.9rem; margin-left: 8px;">(@v.NomeCompleto)</span>
-                                        <span style="background: #292929; color: #15B79E; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px;">
-                                            @v.Partido
-                                        </span>
-                                        <span style="color: #e2e8f0; font-size: 0.85rem; margin-left: 10px;">
-                                            Cargo: <strong>@v.CargoMesa</strong>
-                                        </span>
-                                        @if (!v.Ativo)
-                                        {
-                                            <span style="background: #7f1d1d; color: #fca5a5; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">
-                                                LICENCIADO / INATIVO
-                                            </span>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        @{
+                                            var fotoLista = FotoHelper.ObterDataUrl(v.FotoCaminho);
                                         }
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #171717; border: 1px solid #292929; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            @if (!string.IsNullOrEmpty(fotoLista))
+                                            {
+                                                <img src="@fotoLista" alt="@v.NomePolitico" style="width: 100%; height: 100%; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <Blazicon Svg="Lucide.User" style="width: 20px; height: 20px; color: #898989;" />
+                                            }
+                                        </div>
+
+
+                                        <div>
+                                            <strong style="color: #FAFAFA; font-size: 1.05rem;">@v.NomePolitico</strong>
+                                            <span style="color: #898989; font-size: 0.9rem; margin-left: 8px;">(@v.NomeCompleto)</span>
+                                            <span style="background: #292929; color: #15B79E; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px;">
+                                                @v.Partido
+                                            </span>
+                                            <span style="color: #FAFAFA; font-size: 0.85rem; margin-left: 10px;">
+                                                Cargo: <strong>@v.CargoMesa</strong>
+                                            </span>
+                                            @if (!v.Ativo)
+                                            {
+                                                <span style="background: #7f1d1d; color: #fca5a5; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">
+                                                    LICENCIADO / INATIVO
+                                                </span>
+                                            }
+                                        </div>
                                     </div>
 
                                     <div>
@@ -506,17 +562,27 @@
             </h3>
 
             <div class="grid-vereadores">
-                @foreach (var vereador in Estado.Parlamentares)
+                @foreach (var vereador in Estado.ParlamentaresAtivos)
                 {
                     var presenca = Estado.SessaoAtiva?.Presencas.FirstOrDefault(p => p.ParlamentarId == vereador.Id);
                     var presente = presenca?.Presente ?? false;
                     var voto = Estado.VotosMatériaAtual.TryGetValue(vereador.Id, out var v) ? v : TipoVoto.Ausente;
+                    var fotoVereador = FotoHelper.ObterDataUrl(vereador.FotoCaminho);
 
                     <div class="card-vereador @(presente ? "presente" : "ausente")"
                          style="cursor: pointer;"
                          @onclick="() => { if (Estado.ModoAtual != ModoTelao.VotacaoNominal) Estado.AlternarPresenca(vereador.Id); }">
-
-                        <div style="font-size: 2.2rem; margin-bottom: 8px;"><Blazicon Svg="Lucide.User" /></div>
+                        
+                        @if (!string.IsNullOrEmpty(fotoVereador))
+                        {
+                            <img src="@fotoVereador" alt="@vereador.NomePolitico"
+                                 style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #292929;" />
+                        }
+                        else
+                        {
+                            <div style="font-size: 2.2rem; margin-bottom: 8px;"><Blazicon Svg="Lucide.User" /></div>
+                        }
+                        
                         <strong style="display: block; font-size: 1.1rem; color: #f8fafc;">@vereador.NomePolitico</strong>
                         <span style="font-size: 0.85rem; color: #94a3b8;">@vereador.Partido - @vereador.CargoMesa</span>
 
@@ -746,7 +812,7 @@
 
         // 1. Busca os vereadores cadastrados no PostgreSQL
         var vereadores = await Db.Parlamentares
-            .Where(p => p.Ativo)
+            //.Where(p => p.Ativo)
             .OrderBy(p => p.NomePolitico)
             .ToListAsync();
 
@@ -853,18 +919,23 @@
         if (string.IsNullOrWhiteSpace(vereadorEmEdicao.NomePolitico))
             return;
 
+        using var scope = Services.CreateScope();
+        var dbLocal = scope.ServiceProvider.GetRequiredService<PlenarioDbContext>();
+
+        string? fotoAnterior = null;
+
         if (vereadorEmEdicao.Id == Guid.Empty)
         {
-            // 1. É um novo vereador
             vereadorEmEdicao.Id = Guid.NewGuid();
-            Db.Parlamentares.Add(vereadorEmEdicao);
+            dbLocal.Parlamentares.Add(vereadorEmEdicao);
         }
         else
         {
-            // 2. É uma edição: Busca o vereador já rastreado pelo EF Core e atualiza seus dados
-            var existente = await Db.Parlamentares.FindAsync(vereadorEmEdicao.Id);
+            var existente = await dbLocal.Parlamentares.FindAsync(vereadorEmEdicao.Id);
             if (existente != null)
             {
+                fotoAnterior = existente.FotoCaminho;
+
                 existente.NomeCompleto = vereadorEmEdicao.NomeCompleto;
                 existente.NomePolitico = vereadorEmEdicao.NomePolitico;
                 existente.Partido = vereadorEmEdicao.Partido;
@@ -874,11 +945,14 @@
             }
         }
 
-        // Salva as mudanças no PostgreSQL
-        await Db.SaveChangesAsync();
+        await dbLocal.SaveChangesAsync();
 
-        // Recarrega a bancada do banco com .AsNoTracking() para não prender na memória
-        var vereadoresAtualizados = await Db.Parlamentares
+        if (!string.IsNullOrEmpty(fotoAnterior) && fotoAnterior != vereadorEmEdicao.FotoCaminho)
+        {
+            FotoHelper.ExcluirArquivo(fotoAnterior);
+        }
+
+        var vereadoresAtualizados = await dbLocal.Parlamentares
             .AsNoTracking()
             .OrderBy(p => p.NomePolitico)
             .ToListAsync();
@@ -907,6 +981,24 @@
     private void CancelarEdicaoVereador()
     {
         vereadorEmEdicao = new Parlamentar { Id = Guid.Empty };
+    }
+
+    private async Task AoSelecionarFotoVereadorAsync(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var novoArquivo = await FotoHelper.SalvarFotoAsync(e.File);
+            vereadorEmEdicao.FotoCaminho = novoArquivo;
+        }
+        catch
+        {
+            ExibirMensagem("Não foi possível carregar essa imagem. Use JPG, PNG ou WEBP.");
+        }
+    }
+
+    private void RemoverFotoEmEdicao()
+    {
+        vereadorEmEdicao.FotoCaminho = null;
     }
 
     private void ExibirMensagem(string msg)

@@ -35,14 +35,27 @@
             </div>
 
             <div class="grid-vereadores">
-                @foreach (var v in Estado.Parlamentares)
+                @foreach (var v in Estado.ParlamentaresAtivos)
                 {
                     var presenca = Estado.SessaoAtiva?.Presencas.FirstOrDefault(p => p.ParlamentarId == v.Id);
                     var presente = presenca?.Presente ?? false;
 
                     <div class="card-vereador @(presente ? "presente" : "ausente")" style="padding: 20px;">
-                        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-                            <Blazicon Svg="Lucide.User" style="@($"width: 44px; height: 44px; color: {(presente ? "#17B26A" : "#898989")};")" />
+                        @{
+                            var fotoSrc = FotoHelper.ObterDataUrl(v.FotoCaminho);
+                        }
+                        <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                            @if (!string.IsNullOrEmpty(fotoSrc))
+                            {
+                                <img src="@fotoSrc" alt="@v.NomePolitico"
+                                     style="@($"width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 2px solid {(presente ? "#17B26A" : "#3C3C3C")};")" />
+                            }
+                            else
+                            {
+                                <div style="@($"width: 84px; height: 84px; border-radius: 50%; background: #0F0F0F; border: 2px solid {(presente ? "#17B26A" : "#3C3C3C")}; display: flex; align-items: center; justify-content: center;")">
+                                    <Blazicon Svg="Lucide.User" style="@($"width: 40px; height: 40px; color: {(presente ? "#17B26A" : "#898989")};")" />
+                                </div>
+                            }
                         </div>
                         <h3 style="font-size: 1.3rem; color: #FAFAFA;">@v.NomePolitico</h3>
                         <p style="color: #898989; font-size: 1rem;">@v.Partido</p>
@@ -96,7 +109,7 @@
 
             <!-- GRADE DE VOTOS AO VIVO -->
             <div class="grid-vereadores">
-                @foreach (var v in Estado.Parlamentares)
+                @foreach (var v in Estado.ParlamentaresAtivos)
                 {
                     var presenca = Estado.SessaoAtiva?.Presencas.FirstOrDefault(p => p.ParlamentarId == v.Id);
                     var presente = presenca?.Presente ?? false;
@@ -131,6 +144,22 @@
                     }
 
                     <div class="@estiloVoto" style="padding: 16px;">
+                        @{
+                            var fotoVoto = FotoHelper.ObterDataUrl(v.FotoCaminho);
+                        }
+                        <div style="display: flex; justify-content: center; margin-bottom: 8px;">
+                            @if (!string.IsNullOrEmpty(fotoVoto))
+                            {
+                                <img src="@fotoVoto" alt="@v.NomePolitico"
+                                     style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #292929;" />
+                            }
+                            else
+                            {
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background: #0F0F0F; border: 2px solid #292929; display: flex; align-items: center; justify-content: center;">
+                                    <Blazicon Svg="Lucide.User" style="width: 28px; height: 28px; color: #898989;" />
+                                </div>
+                            }
+                        </div>
                         <h4 style="font-size: 1.2rem; color: #FAFAFA;">@v.NomePolitico</h4>
                         <span style="color: #898989; font-size: 0.9rem;">@v.Partido</span>
                         <div style="margin-top: 8px; font-size: 1.2rem; font-weight: 800; color: @corTexto;">
