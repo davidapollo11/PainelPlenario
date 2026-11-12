@@ -75,25 +75,122 @@
         }
         else if (Estado.ModoAtual == ModoTelao.TribunaCronometro)
         {
-            <!-- CENA 2: CRONÔMETRO DE DISCURSO GIGANTE -->
-            <div class="cronometro-box">
-                <p style="color: #15B79E; font-size: 1.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
-                    Tempo de Tribuna
-                </p>
+            @if (Estado.OradorAtual != null)
+            {
+                <!-- ESTADO COM PARLAMENTAR NA PALAVRA (SEM CARD, FOTO GRANDE) -->
+                var fotoOrador = FotoHelper.ObterDataUrl(Estado.OradorAtual.FotoCaminho);
 
-                <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")"
-                     style="font-size: 9rem; margin: 20px 0;">
-                    @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
-                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 80px; flex-wrap: wrap; margin: 40px auto; width: 100%; max-width: 1500px;">
 
-                @if (Estado.TempoRestanteSegundos == 0 && !Estado.CronometroRodando)
-                {
-                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px; font-size: 2rem; color: #ef4444; font-weight: bold; text-transform: uppercase;">
-                        <Blazicon Svg="Lucide.OctagonX" style="width: 34px; height: 34px;" />
-                        <span>TEMPO ESGOTADO</span>
+                    <!-- BLOCO DO ORADOR -->
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+
+                        <!-- FOTO GRANDE -->
+                        @if (!string.IsNullOrEmpty(fotoOrador))
+                        {
+                            <div style="width: 21vw; border-radius: 15%; overflow: hidden; background: #171717; border: 4px solid #15B79E; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(21, 183, 158, 0.25); display: flex; align-items: center; justify-content: center;">
+                                <img src="@fotoOrador" alt="@Estado.OradorAtual.NomePolitico" style="width: 100%; height: 100%; object-fit: cover;" />
+                            </div>
+                        }
+
+                        <!-- IDENTIFICAÇÃO DO ORADOR (ALINHADA À ESQUERDA) -->
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; margin-top: 22px; gap: 8px">
+                            <!-- NOME POLÍTICO + PARTIDO NA MESMA LINHA -->
+                            <div style="font-size: 1.35rem; color: #898989; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 1.5px;">
+                                <span style="color: #15B79E; font-size: 1.3rem; font-weight: 800;">
+                                    Com a palavra:
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <h2 style="font-size: 2.8rem; font-weight: 800; color: #FAFAFA; line-height: 1.1; margin: 0; letter-spacing: 0.5px;">
+                                    @Estado.OradorAtual.NomePolitico
+                                </h2>
+                                <span style="background: #171717; border: 1.5px solid #15B79E; color: #15B79E; font-size: 1.3rem; font-weight: 800; padding: 4px 14px; border-radius: 8px;">
+                                    @Estado.OradorAtual.Partido
+                                </span>
+                            </div>
+
+                            <!-- CARGO NA MESA ALINHADO À ESQUERDA DO NOME -->
+                            <div style="font-size: 1.35rem; color: #898989; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
+                                @Estado.OradorAtual.CargoMesa
+                            </div>
+                        </div>
                     </div>
-                }
-            </div>
+
+                    <!-- CRONÔMETRO GIGANTE HARMONIZADO -->
+                    <div style="text-align: center;">
+                        <p style="color: #898989; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 8px;">
+                            Tempo de Tribuna
+                        </p>
+
+                        <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")"
+                             style="font-size: 10rem; line-height: 1; font-weight: 900;">
+                            @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
+                        </div>
+
+                        @if (Estado.TempoRestanteSegundos == 0 && !Estado.CronometroRodando)
+                        {
+                            <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px; font-size: 2rem; color: #ef4444; font-weight: bold; text-transform: uppercase; margin-top: 16px;">
+                                <Blazicon Svg="Lucide.OctagonX" style="width: 36px; height: 36px;" />
+                                <span>TEMPO ESGOTADO</span>
+                            </div>
+                        }
+
+                        <!-- CARD DE APARTE ABAIXO DO CRONÔMETRO -->
+                        @if (Estado.ApartanteAtual != null)
+                        {
+                            var fotoApartante = FotoHelper.ObterDataUrl(Estado.ApartanteAtual.FotoCaminho);
+
+                            <div style="margin-top: 24px; display: inline-flex; align-items: center; gap: 16px; background: rgba(245, 158, 11, 0.1); border: 2px solid #f59e0b; padding: 12px 22px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);">
+                                <!-- FOTO DO APARTANTE -->
+                                    @if (!string.IsNullOrEmpty(fotoApartante))
+                                    {
+                                        <div style="width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: #171717; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <img src="@fotoApartante" alt="@Estado.ApartanteAtual.NomePolitico" style="width: 100%; height: 100%; object-fit: cover;" />
+                                        </div>
+                                    }
+
+                                <!-- TEXTO DO APARTE -->
+                                <div style="text-align: left;">
+                                    <span style="display: block; font-size: 0.82rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 1.5px;">
+                                        Em Aparte:
+                                    </span>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                                        <strong style="color: #FAFAFA; font-size: 1.4rem; font-weight: 800;">
+                                            @Estado.ApartanteAtual.NomePolitico
+                                        </strong>
+                                        <span style="background: #292929; color: #f59e0b; font-size: 0.95rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+                                            @Estado.ApartanteAtual.Partido
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- ESTADO PADRÃO / NEUTRO (SEM PARLAMENTAR VINCULADO) -->
+                <div class="cronometro-box">
+                    <p style="color: #15B79E; font-size: 1.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
+                        Tempo de Tribuna
+                    </p>
+
+                    <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")"
+                         style="font-size: 9rem; margin: 20px 0;">
+                        @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
+                    </div>
+
+                    @if (Estado.TempoRestanteSegundos == 0 && !Estado.CronometroRodando)
+                    {
+                        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px; font-size: 2rem; color: #ef4444; font-weight: bold; text-transform: uppercase;">
+                            <Blazicon Svg="Lucide.OctagonX" style="width: 34px; height: 34px;" />
+                            <span>TEMPO ESGOTADO</span>
+                        </div>
+                    }
+                </div>
+            }
         }
         else if (Estado.ModoAtual == ModoTelao.VotacaoNominal)
         {

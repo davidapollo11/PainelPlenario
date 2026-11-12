@@ -13,6 +13,7 @@ namespace PainelPlenario.Core.Services
         public ModoTelao ModoAtual { get; private set; } = ModoTelao.AguardandoInicio;
         public ItemPauta? MateriaAtual { get; private set; }
         public Parlamentar? OradorAtual { get; private set; }
+        public Parlamentar? ApartanteAtual { get; private set; }
         public int TempoRestanteSegundos { get; private set; } = 0;
         public bool CronometroRodando { get; private set; } = false;
         private System.Timers.Timer? _timer;
@@ -118,7 +119,10 @@ namespace PainelPlenario.Core.Services
         {
             PararTimerInterno();
             TempoRestanteSegundos = segundos;
-            OradorAtual = orador;
+
+            if (orador != null)
+                OradorAtual = orador;
+
             CronometroRodando = true;
             // Configura o relógio interno para disparar a cada 1 segundo (1000ms)
             _timer = new System.Timers.Timer(1000);
@@ -182,6 +186,29 @@ namespace PainelPlenario.Core.Services
                 _timer.Dispose();
                 _timer = null;
             }
+        }
+
+        public void DefinirOrador(Parlamentar? orador)
+        {
+            OradorAtual = orador;
+            Notificar();
+        }
+
+        public void DefinirApartante(Parlamentar? apartante)
+        {
+            ApartanteAtual = apartante;
+            Notificar();
+        }
+        public void LimparApartante()
+        {
+            ApartanteAtual = null;
+            Notificar();
+        }
+        public void LimparOrador()
+        {
+            OradorAtual = null;
+            ApartanteAtual = null;
+            Notificar();
         }
 
         // -------------------------------------------------------------

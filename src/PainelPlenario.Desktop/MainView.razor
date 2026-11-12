@@ -456,6 +456,102 @@
                     <div style="background: #171717; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #292929; margin-bottom: 24px;">
                         <h2 style="color: #94a3b8; font-size: 1.2rem; text-transform: uppercase;">Tempo de Discurso na Tribuna</h2>
 
+                        <!-- GESTÃO DO ORADOR & APARTE (LINHA ÚNICA COMPACTA) -->
+                        <div style="background: #0F0F0F; padding: 14px 18px; border-radius: 10px; border: 1px solid #292929; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <span style="font-size: 0.82rem; font-weight: 700; color: #898989; text-transform: uppercase; letter-spacing: 1px;">
+                                        Tribuna:
+                                    </span>
+                                    @if (Estado.OradorAtual != null)
+                                    {
+                                        var fotoOrador = FotoHelper.ObterDataUrl(Estado.OradorAtual.FotoCaminho);
+                                        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(21, 183, 158, 0.15); border: 1px solid #15B79E; padding: 3px 10px; border-radius: 999px;">
+                                            <div style="width: 22px; height: 22px; border-radius: 50%; overflow: hidden; background: #171717; display: flex; align-items: center; justify-content: center;">
+                                                @if (!string.IsNullOrEmpty(fotoOrador))
+                                                {
+                                                    <img src="@fotoOrador" style="width: 100%; height: 100%; object-fit: cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <Blazicon Svg="Lucide.User" style="width: 12px; height: 12px; color: #15B79E;" />
+                                                }
+                                            </div>
+                                            <strong style="color: #15B79E; font-size: 0.9rem;">@Estado.OradorAtual.NomePolitico</strong>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #898989; font-size: 0.88rem; font-style: italic;">
+                                            Geral / Convidado
+                                        </span>
+                                    }
+
+                                    @if (Estado.ApartanteAtual != null)
+                                    {
+                                        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; padding: 3px 10px; border-radius: 999px;">
+                                            <span style="font-size: 0.75rem; font-weight: 800; color: #f59e0b; text-transform: uppercase;">Aparte:</span>
+                                            <strong style="color: #f59e0b; font-size: 0.9rem;">@Estado.ApartanteAtual.NomePolitico</strong>
+                                            <button type="button" @onclick="() => Estado.LimparApartante()" style="background: transparent; border: none; color: #f59e0b; cursor: pointer; padding: 0 0 0 4px; display: flex; align-items: center;">
+                                                <Blazicon Svg="Lucide.X" style="width: 12px; height: 12px;" />
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (Estado.OradorAtual != null)
+                                {
+                                    <button class="btn btn-vermelho" @onclick="() => Estado.LimparOrador()" style="padding: 4px 10px; font-size: 0.8rem;">
+                                        <Blazicon Svg="Lucide.X" />
+                                        <span>Tribuna Geral</span>
+                                    </button>
+                                }
+                            </div>
+
+                            <!-- GRADE ÚNICA DE PARLAMENTARES -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: left;">
+                                <button class="btn @(Estado.OradorAtual == null ? "btn-ativo" : "")"
+                                        @onclick="() => Estado.LimparOrador()"
+                                        style="padding: 6px 12px; font-size: 0.85rem;">
+                                    <Blazicon Svg="Lucide.Users" />
+                                    <span>Geral</span>
+                                </button>
+
+                                @foreach (var p in Estado.ParlamentaresAtivos)
+                                {
+                                    var presenca = Estado.SessaoAtiva?.Presencas.FirstOrDefault(pr => pr.ParlamentarId == p.Id);
+                                    var presente = presenca?.Presente ?? false;
+                                    var ehOrador = Estado.OradorAtual?.Id == p.Id;
+                                    var ehApartante = Estado.ApartanteAtual?.Id == p.Id;
+
+                                    @if (presente)
+                                    {
+                                        <div style="@($"display: inline-flex; align-items: center; background: #292929; border-radius: 8px; overflow: hidden;")">
+                                            <!-- CLIQUE NO NOME: DEFINE COMO ORADOR PRINCIPAL -->
+                                            <button class="btn @(ehOrador ? "btn-ativo" : "")"
+                                                    @onclick="() => Estado.DefinirOrador(p)"
+                                                    style="border: none; border-radius: 0; padding: 6px 10px; font-size: 0.85rem; background: @(ehOrador ? "#17B26A" : "transparent");">
+                                                <span>@p.NomePolitico</span>
+                                            </button>
+
+                                            <!-- ÍCONE DE APARTE: SÓ SURGE SE HOUVER ORADOR NA TRIBUNA E NÃO FOR ELE MESMO -->
+                                            @if (Estado.OradorAtual != null && !ehOrador)
+                                            {
+                                                <button type="button"
+                                                        @onclick="() => AlternarApartante(p)"
+                                                        title="@(ehApartante ? "Encerrar Aparte" : $"Conceder Aparte a {p.NomePolitico}")"
+                                                        style="@($"border: none; border-left: 1px solid #3C3C3C; padding: 6px 8px; cursor: pointer; display: flex; align-items: center; background: {(ehApartante ? "#f59e0b" : "transparent")}; color: {(ehApartante ? "#0F0F0F" : "#f59e0b")};")">
+                                                    <Blazicon Svg="Lucide.Mic" style="width: 14px; height: 14px;" />
+                                                </button>
+                                            }
+                                        </div>
+                                        
+                                    }
+
+                                }
+                            </div>
+                        </div>
+
                         <div class="cronometro-tempo @(Estado.TempoRestanteSegundos <= 60 && Estado.TempoRestanteSegundos > 0 ? "cronometro-alerta" : "")">
                             @TimeSpan.FromSeconds(Estado.TempoRestanteSegundos).ToString(@"mm\:ss")
                         </div>
@@ -1067,5 +1163,17 @@
             return;
 
         Estado.AdicionarTempo(minutosAdicionais * 60);
+    }
+
+    private void AlternarApartante(Parlamentar p)
+    {
+        if (Estado.ApartanteAtual?.Id == p.Id)
+        {
+            Estado.LimparApartante();
+        }
+        else
+        {
+            Estado.DefinirApartante(p);
+        }
     }
 }
