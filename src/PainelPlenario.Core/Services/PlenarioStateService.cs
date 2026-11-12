@@ -9,6 +9,7 @@ namespace PainelPlenario.Core.Services
         public event Action? OnMudancaEstado;
         public Sessao? SessaoAtiva { get; private set; }
         public List<Parlamentar> Parlamentares { get; private set; } = new();
+        public List<Parlamentar> ParlamentaresAtivos { get; private set; } = new();
         public ModoTelao ModoAtual { get; private set; } = ModoTelao.AguardandoInicio;
         public ItemPauta? MateriaAtual { get; private set; }
         public Parlamentar? OradorAtual { get; private set; }
@@ -27,6 +28,7 @@ namespace PainelPlenario.Core.Services
         public void DefinirSessao(Sessao sessao, List<Parlamentar> parlamentares)
         {
             SessaoAtiva = sessao;
+            ParlamentaresAtivos = parlamentares.Where(p => p.Ativo).ToList();
             Parlamentares = parlamentares;
             Notificar();
         }
@@ -50,7 +52,7 @@ namespace PainelPlenario.Core.Services
         public void VotacaoSimbolicaAprovarTodos()
         {
             if (SessaoAtiva == null) return;
-            foreach (var p in Parlamentares)
+            foreach (var p in ParlamentaresAtivos)
             {
                 var presenca = SessaoAtiva.Presencas.FirstOrDefault(pr => pr.ParlamentarId == p.Id);
                 if (presenca != null && presenca.Presente)
@@ -75,6 +77,7 @@ namespace PainelPlenario.Core.Services
         // Atualiza a lista de parlamentares na memória quando um vereador for adicionado ou editado
         public void AtualizarParlamentares(List<Parlamentar> parlamentares)
         {
+            ParlamentaresAtivos = parlamentares.Where(p => p.Ativo).ToList();
             Parlamentares = parlamentares;
             Notificar();
         }
