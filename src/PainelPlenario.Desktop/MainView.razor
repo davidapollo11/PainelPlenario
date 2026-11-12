@@ -4,7 +4,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
 @using PainelPlenario.Data
-@inject PlenarioDbContext Db
+@inject IDbContextFactory<PlenarioDbContext> DbFactory
 
 <div class="console-layout">
     
@@ -756,13 +756,12 @@
             Status = StatusItemPauta.Pendente
         };
 
-        // Salva na tabela do PostgreSQL
-        Db.ItensPauta.Add(materia);
-        await Db.SaveChangesAsync();
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.ItensPauta.Add(materia);
+        await db.SaveChangesAsync();
 
-        // Atualiza a memória para refletir na tela
         Estado.SessaoAtiva.ItensPauta.Add(materia);
-        Estado.MudarModoTelao(Estado.ModoAtual); // Dispara a notificação de tela
+        Estado.MudarModoTelao(Estado.ModoAtual);
 
         novoNumero = "";
         novaEmenta = "";
@@ -795,15 +794,19 @@
         }
         catch (Exception ex)
         {
-            // Se der qualquer erro no banco, abre uma caixinha avisando!
             System.Windows.MessageBox.Show(ex.ToString(), "Erro ao carregar dados do PostgreSQL");
         }
     }
 
     private async Task CarregarDadosDoBancoAsync()
     {
-        // 0. Carrega a configuração da Câmara do banco
-        var config = await Db.Configuracoes.FirstOrDefaultAsync();
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        // 0. Carrega a configuração da Câmara (desacoplada do ChangeTracker)
+        var config = await db.Configuracoes
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+
         if (config != null)
         {
             configEdicao = config;
@@ -811,13 +814,14 @@
         }
 
         // 1. Busca os vereadores cadastrados no PostgreSQL
-        var vereadores = await Db.Parlamentares
-            //.Where(p => p.Ativo)
+        var vereadores = await db.Parlamentares
+            .AsNoTracking()
             .OrderBy(p => p.NomePolitico)
             .ToListAsync();
 
         // 2. Busca se já existe uma sessão em aberto no banco
-        var sessao = await Db.Sessoes
+        var sessao = await db.Sessoes
+            .AsNoTracking()
             .Include(s => s.ItensPauta)
             .Include(s => s.Presencas)
             .OrderByDescending(s => s.Data)
@@ -833,7 +837,6 @@
                 Status = StatusSessao.EmAndamento
             };
 
-            // Adiciona a presença inicial para todos os vereadores
             foreach (var v in vereadores)
             {
                 sessao.Presencas.Add(new RegistroPresenca
@@ -844,7 +847,6 @@
                 });
             }
 
-            // Adiciona o primeiro Projeto de Lei na pauta
             var materiaInicial = new ItemPauta
             {
                 SessaoId = sessao.Id,
@@ -856,12 +858,11 @@
             };
             sessao.ItensPauta.Add(materiaInicial);
 
-            // Grava tudo no PostgreSQL de verdade!
-            Db.Sessoes.Add(sessao);
-            await Db.SaveChangesAsync();
+            db.Sessoes.Add(sessao);
+            await db.SaveChangesAsync();
         }
 
-        // Alimenta o motor de estado em memória com os dados do PostgreSQL
+        // Alimenta o motor de estado em memória com os dados desacoplados
         Estado.DefinirSessao(sessao, vereadores);
 
         var primeiraMateria = sessao.ItensPauta.FirstOrDefault();
@@ -896,22 +897,26 @@
     private ConfiguracaoCamara configEdicao = new();
     private Parlamentar vereadorEmEdicao = new() { Id = Guid.Empty };
 
-    private async Task SalvarIdentidadeAsync()
+    private Task SalvarIdentidadeAsync() =>
+        SalvarConfiguracaoAsync("Dados institucionais salvos e atualizados no sistema!");
+
+    private Task SalvarRegrasAsync() =>
+        SalvarConfiguracaoAsync("Parâmetros salvos com sucesso!");
+
+    private async Task SalvarConfiguracaoAsync(string mensagemSucesso)
     {
-        Db.Configuracoes.Update(configEdicao);
-        await Db.SaveChangesAsync();
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        var jaExiste = await db.Configuracoes.AnyAsync(c => c.Id == configEdicao.Id);
+        if (jaExiste)
+            db.Configuracoes.Update(configEdicao);
+        else
+            db.Configuracoes.Add(configEdicao);
+
+        await db.SaveChangesAsync();
         Estado.DefinirConfiguracao(configEdicao);
 
-        ExibirMensagem("Dados institucionais salvos e atualizados no sistema!");
-    }
-
-    private async Task SalvarRegrasAsync()
-    {
-        Db.Configuracoes.Update(configEdicao);
-        await Db.SaveChangesAsync();
-        Estado.DefinirConfiguracao(configEdicao);
-
-        ExibirMensagem("Parâmetros salvos com sucesso!");
+        ExibirMensagem(mensagemSucesso);
     }
 
     private async Task SalvarVereadorAsync()
@@ -919,19 +924,17 @@
         if (string.IsNullOrWhiteSpace(vereadorEmEdicao.NomePolitico))
             return;
 
-        using var scope = Services.CreateScope();
-        var dbLocal = scope.ServiceProvider.GetRequiredService<PlenarioDbContext>();
-
+        await using var db = await DbFactory.CreateDbContextAsync();
         string? fotoAnterior = null;
 
         if (vereadorEmEdicao.Id == Guid.Empty)
         {
             vereadorEmEdicao.Id = Guid.NewGuid();
-            dbLocal.Parlamentares.Add(vereadorEmEdicao);
+            db.Parlamentares.Add(vereadorEmEdicao);
         }
         else
         {
-            var existente = await dbLocal.Parlamentares.FindAsync(vereadorEmEdicao.Id);
+            var existente = await db.Parlamentares.FindAsync(vereadorEmEdicao.Id);
             if (existente != null)
             {
                 fotoAnterior = existente.FotoCaminho;
@@ -945,14 +948,14 @@
             }
         }
 
-        await dbLocal.SaveChangesAsync();
+        await db.SaveChangesAsync();
 
         if (!string.IsNullOrEmpty(fotoAnterior) && fotoAnterior != vereadorEmEdicao.FotoCaminho)
         {
             FotoHelper.ExcluirArquivo(fotoAnterior);
         }
 
-        var vereadoresAtualizados = await dbLocal.Parlamentares
+        var vereadoresAtualizados = await db.Parlamentares
             .AsNoTracking()
             .OrderBy(p => p.NomePolitico)
             .ToListAsync();
@@ -965,7 +968,6 @@
 
     private void EditarVereador(Parlamentar v)
     {
-        // Cria uma cópia para edição
         vereadorEmEdicao = new Parlamentar
         {
             Id = v.Id,

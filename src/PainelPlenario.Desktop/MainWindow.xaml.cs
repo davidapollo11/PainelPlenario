@@ -26,9 +26,9 @@ public partial class MainWindow : Window
             services.AddBlazorWebViewDeveloperTools();
 #endif
 
-            // 2. Conexão com o PostgreSQL do Docker
+            // 2. Conexão com o PostgreSQL do Docker (Factory recomendada para Blazor Hybrid)
             var connectionString = "Host=localhost;Port=5433;Database=plenario_db;Username=postgres;Password=postgres;";
-            services.AddDbContext<PlenarioDbContext>(options =>
+            services.AddDbContextFactory<PlenarioDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
             // 3. Nosso motor de estado
@@ -39,8 +39,8 @@ public partial class MainWindow : Window
             // 4. Executa a criação no banco em segundo plano SEM travar a UI Thread!
             Task.Run(async () =>
             {
-                using var scope = serviceProvider.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<PlenarioDbContext>();
+                var dbFactory = serviceProvider.GetRequiredService<IDbContextFactory<PlenarioDbContext>>();
+                await using var db = await dbFactory.CreateDbContextAsync();
                 await db.InicializarBancoAsync();
             }).Wait();
 
