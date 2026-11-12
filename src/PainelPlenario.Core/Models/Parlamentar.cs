@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace PainelPlenario.Core.Models
+﻿namespace PainelPlenario.Core.Models
 {
     public class Parlamentar
     {
